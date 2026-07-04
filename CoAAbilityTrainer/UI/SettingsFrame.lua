@@ -298,7 +298,7 @@ function CoAAT_SettingsFrame.Build()
 
     -- ── Bottom buttons ──
     local closeBtn2 = CreateFrame("Button", nil, f, "UIPanelButtonTemplate")
-    closeBtn2:SetSize(100, 24)
+    closeBtn2:SetSize(85, 24)
     closeBtn2:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", -12, 12)
     closeBtn2:SetText("Close")
     closeBtn2:SetScript("OnClick", function() f:Hide() end)
@@ -306,14 +306,23 @@ function CoAAT_SettingsFrame.Build()
     local resetBtn = CreateFrame("Button", nil, f, "UIPanelButtonTemplate")
     resetBtn:SetSize(120, 24)
     resetBtn:SetPoint("BOTTOMLEFT", f, "BOTTOMLEFT", 12, 12)
-    resetBtn:SetText("Reset HUD Position")
+    resetBtn:SetText("Reset Position")
     resetBtn:SetScript("OnClick", function()
         if CoAAT_CombatHUD._hud then
             CoAAT_CombatHUD._hud:ClearAllPoints()
-            CoAAT_CombatHUD._hud:SetPoint("RIGHT", UIParent, "RIGHT", -180, -60)
+            CoAAT_CombatHUD._hud:SetPoint("CENTER", UIParent, "CENTER", 0, -150)
         end
         if CoAAT_DB then CoAAT_DB.hudPos = nil end
     end)
+
+    local setupBarBtn = CreateFrame("Button", nil, f, "UIPanelButtonTemplate")
+    setupBarBtn:SetSize(140, 24)
+    setupBarBtn:SetPoint("BOTTOMLEFT", f, "BOTTOMLEFT", 136, 12)
+    setupBarBtn:SetText("⚡ Setup Bar Page 2")
+    setupBarBtn:SetScript("OnClick", function()
+        CoAAT_SettingsFrame.SetupHotbarPage2()
+    end)
+    f._setupBarBtn = setupBarBtn
 
     f:Hide()
     _frame = f
@@ -323,6 +332,67 @@ function CoAAT_SettingsFrame.Build()
     hooksecurefunc(CoAAT_Engine, "SetClass", function(classId, specId)
         CoAAT_SettingsFrame.UpdateRotSummary()
     end)
+end
+
+-- ─────────────────────────────────────────────
+-- Dynamically create macros and place on Page 2
+-- ─────────────────────────────────────────────
+function CoAAT_SettingsFrame.SetupHotbarPage2()
+    if InCombatLockdown() then
+        print("|cffff2222[CoAAT] Error: Cannot setup action bar in combat!|r")
+        return
+    end
+
+    local specDef = CoAAT_Engine.GetSpecDef()
+    if not specDef or not specDef.abilities then
+        print("|cffff2222[CoAAT] Error: No active class specialization selected.|r")
+        return
+    end
+
+    print("|cff00ccff[CoAAT] Setting up hotbar Page 2 for " .. specDef.name .. "...|r")
+
+    -- Clean up cursor first
+    ClearCursor()
+
+    for i, ability in ipairs(specDef.abilities) do
+        local slot = 12 + i
+        if slot > 24 then break end -- Only fill slots 13-24 (page 2)
+
+        -- Clean macro name (WoW limit 16 characters)
+        local macroName = "CoA_" .. ability.name:gsub("%s", ""):sub(1, 12)
+        local macroBody = "/cast " .. ability.name
+
+        -- Try to find existing macro (returns 1-54, or 0 if not found)
+        local macroIndex = GetMacroIndexByName(macroName)
+        if not macroIndex or macroIndex == 0 then
+            local _, numChar = GetNumMacros()
+            if numChar < 18 then
+                -- Create character-specific macro
+                macroIndex = CreateMacro(macroName, "INV_Misc_QuestionMark", macroBody, 1)
+            else
+                local numGlobal = GetNumMacros()
+                if numGlobal < 36 then
+                    -- Fallback to global macro
+                    macroIndex = CreateMacro(macroName, "INV_Misc_QuestionMark", macroBody, nil)
+                else
+                    print("|cffff2222[CoAAT] Error: Macro list is full! Clear some macros.|r")
+                    break
+                end
+            end
+        else
+            -- Update existing macro body
+            EditMacro(macroIndex, nil, nil, macroBody)
+        end
+
+        if macroIndex and macroIndex > 0 then
+            -- Place macro in slot
+            PickupMacro(macroIndex)
+            PlaceAction(slot)
+            ClearCursor()
+        end
+    end
+
+    print("|cff00ccff[CoAAT] Hotbar Page 2 setup complete! Switched page 2 icons.|r")
 end
 
 function CoAAT_SettingsFrame.UpdateSpecDropdown(cls)
