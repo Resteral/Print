@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Globe, MessageSquare, Megaphone, Settings, Link as LinkIcon, ShoppingCart, Bot } from "lucide-react";
+import { LayoutDashboard, Globe, MessageSquare, Megaphone, Settings, Link as LinkIcon, ShoppingCart, Bot, Inbox, Compass } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -15,21 +15,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <Bot className="w-6 h-6" />
             Resolve.bet
           </Link>
-            <Link href="/dashboard/integrations" className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-secondary/50 hover:text-foreground transition-colors">
-              <Settings className="w-4 h-4" />
-              Integrations
-            </Link>
-            <Link href="/dashboard/inbox" className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-secondary/50 hover:text-foreground transition-colors">
-              <MessageSquare className="w-4 h-4" />
-              Inbox
-            </Link>
         </div>
         <nav className="flex-grow p-4 flex flex-col gap-2">
           <NavLink href="/dashboard" icon={<LayoutDashboard size={18} />} label="Overview" />
           <NavLink href="/dashboard/generate" icon={<Globe size={18} />} label="Generate Site" />
           <NavLink href="/dashboard/sites" icon={<Globe size={18} />} label="My Sites" />
           <NavLink href="/dashboard/store" icon={<ShoppingCart size={18} />} label="E-Commerce" />
+          <NavLink href="/dashboard/inbox" icon={<Inbox size={18} />} label="CRM Inbox" />
           <NavLink href="/dashboard/chatbot" icon={<MessageSquare size={18} />} label="AI Chatbot" />
+          <NavLink href="/dashboard/discord" icon={<Compass size={18} />} label="Discord Gen" />
           <NavLink href="/dashboard/integrations" icon={<LinkIcon size={18} />} label="Integrations" />
           <NavLink href="/devspace" icon={<Megaphone size={18} />} label="Marketing & Ads" />
           
