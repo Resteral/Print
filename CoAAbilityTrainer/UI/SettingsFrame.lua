@@ -1,5 +1,5 @@
 -- ============================================================
--- CoAAbilityTrainer - Settings Frame (Customizable & Modular Options)
+-- CoAAbilityTrainer - Settings Frame (Simplistic Single-Button Design)
 -- Class / Spec picker + Options panel
 -- ============================================================
 
@@ -95,7 +95,7 @@ local SPEC_NAMES = {
 
 function CoAAT_SettingsFrame.Build()
     local f = CreateFrame("Frame", "CoAATSettingsFrame", UIParent)
-    f:SetSize(380, 500)
+    f:SetSize(380, 450)
     f:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
     f:SetToplevel(true)
     f:SetMovable(true)
@@ -119,21 +119,31 @@ function CoAAT_SettingsFrame.Build()
     end
     makeLine(f, 380, 1, "TOPLEFT",     "TOPLEFT",     0,  0)
     makeLine(f, 380, 1, "BOTTOMLEFT",  "BOTTOMLEFT",  0,  0)
-    makeLine(f, 1, 500, "TOPLEFT",     "TOPLEFT",     0,  0)
-    makeLine(f, 1, 500, "TOPRIGHT",    "TOPRIGHT",    0,  0)
+    makeLine(f, 1, 450, "TOPLEFT",     "TOPLEFT",     0,  0)
+    makeLine(f, 1, 450, "TOPRIGHT",    "TOPRIGHT",    0,  0)
 
-    -- Close button
+    -- Close button (top right)
     local close = CreateFrame("Button", nil, f, "UIPanelCloseButton")
     close:SetPoint("TOPRIGHT", f, "TOPRIGHT", -4, -4)
     close:SetScript("OnClick", function()
         CoAAT_SettingsFrame.Toggle()
     end)
 
+    -- Tutorial/Help button [?] (Next to close button)
+    local helpBtn = CreateFrame("Button", nil, f, "UIPanelButtonTemplate")
+    helpBtn:SetSize(22, 22)
+    helpBtn:SetPoint("TOPRIGHT", close, "TOPLEFT", -2, -5)
+    helpBtn:SetText("?")
+    helpBtn:SetScript("OnClick", function()
+        local classId = CoAAT_Engine.GetClassId() or "general"
+        CoAAT_TutorialPanel.ShowClassIntro(classId)
+    end)
+
     -- Title
     local title = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     title:SetPoint("TOPLEFT", f, "TOPLEFT", 14, -14)
     title:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE")
-    title:SetText("|cff00ccff⚔ CoA Ability Trainer|r |cffaaaaaa— Settings|r")
+    title:SetText("|cff00ccff⚔ CoA Ability Trainer|r")
 
     -- ── Section: Class Picker ──
     local classHdr = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
@@ -165,7 +175,6 @@ function CoAAT_SettingsFrame.Build()
                     CoAAT_SettingsFrame._pendingClass = cls.id
                     CoAAT_SettingsFrame._pendingSpec  = cls.specs[1]
                     CoAAT_SettingsFrame.UpdateSpecDropdown(cls)
-                    f._applyBtn:Enable()
                 end
                 UIDropDownMenu_AddButton(info)
             end
@@ -185,48 +194,15 @@ function CoAAT_SettingsFrame.Build()
     UIDropDownMenu_SetText(specDropdown, "-- Select Spec --")
     f._specDropdown = specDropdown
 
-    -- Apply button
-    local applyBtn = CreateFrame("Button", nil, f, "UIPanelButtonTemplate")
-    applyBtn:SetSize(120, 26)
-    applyBtn:SetPoint("TOPLEFT", f, "TOPLEFT", 14, -110)
-    applyBtn:SetText("✓ Apply Class")
-    applyBtn:Disable()
-    applyBtn:SetScript("OnClick", function()
-        local classId = CoAAT_SettingsFrame._pendingClass
-        local specId  = CoAAT_SettingsFrame._pendingSpec
-        if classId then
-            CoAAT_Engine.SetClass(classId, specId)
-            CoAAT_TutorialPanel.ShowClassIntro(classId)
-        end
-        applyBtn:Disable()
-    end)
-    f._applyBtn = applyBtn
-
-    -- Tutorial button
-    local tutBtn = CreateFrame("Button", nil, f, "UIPanelButtonTemplate")
-    tutBtn:SetSize(150, 26)
-    tutBtn:SetPoint("TOPLEFT", f, "TOPLEFT", 144, -110)
-    tutBtn:SetText("📖 View Tutorial")
-    tutBtn:SetScript("OnClick", function()
-        local classId = CoAAT_Engine.GetClassId() or "general"
-        CoAAT_TutorialPanel.ShowClassIntro(classId)
-    end)
-
-    -- Divider
-    local div1 = f:CreateTexture(nil, "OVERLAY")
-    div1:SetSize(352, 1)
-    div1:SetPoint("TOPLEFT", f, "TOPLEFT", 14, -144)
-    div1:SetTexture(0.0, 0.4, 0.7, 0.4)
-
     -- ── Section: Options ──
     local optHdr = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    optHdr:SetPoint("TOPLEFT", f, "TOPLEFT", 14, -152)
+    optHdr:SetPoint("TOPLEFT", f, "TOPLEFT", 14, -110)
     optHdr:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE")
     optHdr:SetText("|cffFFD700HUD Configuration & Customization|r")
 
     -- Checkboxes: Col 1 (X = 10)
     local hideCombatCB = CreateFrame("CheckButton", "CoAATHideCombatCB", f, "UICheckButtonTemplate")
-    hideCombatCB:SetPoint("TOPLEFT", f, "TOPLEFT", 10, -172)
+    hideCombatCB:SetPoint("TOPLEFT", f, "TOPLEFT", 10, -130)
     _G[hideCombatCB:GetName() .. "Text"]:SetText("|cffddddddHide out of combat|r")
     hideCombatCB:SetChecked(CoAAT_DB and CoAAT_DB.hideOutOfCombat or false)
     hideCombatCB:SetScript("OnClick", function(self)
@@ -234,7 +210,7 @@ function CoAAT_SettingsFrame.Build()
     end)
 
     local rotHelperCB = CreateFrame("CheckButton", "CoAATRotHelperCB", f, "UICheckButtonTemplate")
-    rotHelperCB:SetPoint("TOPLEFT", f, "TOPLEFT", 10, -198)
+    rotHelperCB:SetPoint("TOPLEFT", f, "TOPLEFT", 10, -156)
     _G[rotHelperCB:GetName() .. "Text"]:SetText("|cffddddddShow Rotation HUD|r")
     rotHelperCB:SetChecked(CoAAT_DB and CoAAT_DB.showRotHelper ~= false)
     rotHelperCB:SetScript("OnClick", function(self)
@@ -243,7 +219,7 @@ function CoAAT_SettingsFrame.Build()
     end)
 
     local resBarCB = CreateFrame("CheckButton", "CoAATResBarCB", f, "UICheckButtonTemplate")
-    resBarCB:SetPoint("TOPLEFT", f, "TOPLEFT", 10, -224)
+    resBarCB:SetPoint("TOPLEFT", f, "TOPLEFT", 10, -182)
     _G[resBarCB:GetName() .. "Text"]:SetText("|cffddddddShow Resource Bar|r")
     resBarCB:SetChecked(CoAAT_DB and CoAAT_DB.showResourceBar ~= false)
     resBarCB:SetScript("OnClick", function(self)
@@ -252,7 +228,7 @@ function CoAAT_SettingsFrame.Build()
     end)
 
     local aurasCB = CreateFrame("CheckButton", "CoAATAurasCB", f, "UICheckButtonTemplate")
-    aurasCB:SetPoint("TOPLEFT", f, "TOPLEFT", 10, -250)
+    aurasCB:SetPoint("TOPLEFT", f, "TOPLEFT", 10, -208)
     _G[aurasCB:GetName() .. "Text"]:SetText("|cffddddddShow Aura Tracker|r")
     aurasCB:SetChecked(CoAAT_DB and CoAAT_DB.showAuras ~= false)
     aurasCB:SetScript("OnClick", function(self)
@@ -262,7 +238,7 @@ function CoAAT_SettingsFrame.Build()
 
     -- Checkboxes: Col 2 (X = 190)
     local procAlertCB = CreateFrame("CheckButton", "CoAATShowProcAlertCB", f, "UICheckButtonTemplate")
-    procAlertCB:SetPoint("TOPLEFT", f, "TOPLEFT", 190, -172)
+    procAlertCB:SetPoint("TOPLEFT", f, "TOPLEFT", 190, -130)
     _G[procAlertCB:GetName() .. "Text"]:SetText("|cffddddddShow proc alerts|r")
     procAlertCB:SetChecked(CoAAT_DB and CoAAT_DB.showProcAlerts ~= false)
     procAlertCB:SetScript("OnClick", function(self)
@@ -270,7 +246,7 @@ function CoAAT_SettingsFrame.Build()
     end)
 
     local aoeModeCB = CreateFrame("CheckButton", "CoAATAoEModeCB", f, "UICheckButtonTemplate")
-    aoeModeCB:SetPoint("TOPLEFT", f, "TOPLEFT", 190, -198)
+    aoeModeCB:SetPoint("TOPLEFT", f, "TOPLEFT", 190, -156)
     _G[aoeModeCB:GetName() .. "Text"]:SetText("|cffddddddEnable AoE Mode|r")
     aoeModeCB:SetChecked(CoAAT_Engine.GetAoEMode())
     aoeModeCB:SetScript("OnClick", function(self)
@@ -279,7 +255,7 @@ function CoAAT_SettingsFrame.Build()
     f._aoeModeCB = aoeModeCB
 
     local cdStripCB = CreateFrame("CheckButton", "CoAATCdStripCB", f, "UICheckButtonTemplate")
-    cdStripCB:SetPoint("TOPLEFT", f, "TOPLEFT", 190, -224)
+    cdStripCB:SetPoint("TOPLEFT", f, "TOPLEFT", 190, -182)
     _G[cdStripCB:GetName() .. "Text"]:SetText("|cffddddddShow Cooldowns|r")
     cdStripCB:SetChecked(CoAAT_DB and CoAAT_DB.showCooldowns ~= false)
     cdStripCB:SetScript("OnClick", function(self)
@@ -290,12 +266,12 @@ function CoAAT_SettingsFrame.Build()
     -- Divider
     local div2 = f:CreateTexture(nil, "OVERLAY")
     div2:SetSize(352, 1)
-    div2:SetPoint("TOPLEFT", f, "TOPLEFT", 14, -280)
+    div2:SetPoint("TOPLEFT", f, "TOPLEFT", 14, -238)
     div2:SetTexture(0.0, 0.4, 0.7, 0.4)
 
-    -- Sliders: Scale & Opacity (Y = -305)
+    -- Sliders: Scale & Opacity (Y = -263)
     local scaleSlider = CreateFrame("Slider", "CoAATHUDScaleSlider", f, "OptionsSliderTemplate")
-    scaleSlider:SetPoint("TOPLEFT", f, "TOPLEFT", 20, -305)
+    scaleSlider:SetPoint("TOPLEFT", f, "TOPLEFT", 20, -263)
     scaleSlider:SetWidth(150)
     scaleSlider:SetMinMaxValues(0.5, 1.5)
     scaleSlider:SetValueStep(0.05)
@@ -310,7 +286,7 @@ function CoAAT_SettingsFrame.Build()
     f._scaleSlider = scaleSlider
 
     local alphaSlider = CreateFrame("Slider", "CoAATHUDAlphaSlider", f, "OptionsSliderTemplate")
-    alphaSlider:SetPoint("TOPLEFT", f, "TOPLEFT", 190, -305)
+    alphaSlider:SetPoint("TOPLEFT", f, "TOPLEFT", 190, -263)
     alphaSlider:SetWidth(150)
     alphaSlider:SetMinMaxValues(0.2, 1.0)
     alphaSlider:SetValueStep(0.05)
@@ -327,17 +303,17 @@ function CoAAT_SettingsFrame.Build()
     -- Divider
     local div3 = f:CreateTexture(nil, "OVERLAY")
     div3:SetSize(352, 1)
-    div3:SetPoint("TOPLEFT", f, "TOPLEFT", 14, -340)
+    div3:SetPoint("TOPLEFT", f, "TOPLEFT", 14, -298)
     div3:SetTexture(0.0, 0.4, 0.7, 0.4)
 
     -- ── Quick Rotation Summary ──
     local rotHdr = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    rotHdr:SetPoint("TOPLEFT", f, "TOPLEFT", 14, -350)
+    rotHdr:SetPoint("TOPLEFT", f, "TOPLEFT", 14, -308)
     rotHdr:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE")
     rotHdr:SetText("|cffFFD700Current Rotation Summary|r")
 
     local rotSummary = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    rotSummary:SetPoint("TOPLEFT", f, "TOPLEFT", 14, -370)
+    rotSummary:SetPoint("TOPLEFT", f, "TOPLEFT", 14, -328)
     rotSummary:SetSize(352, 70)
     rotSummary:SetFont("Fonts\\FRIZQT__.TTF", 10, "OUTLINE")
     rotSummary:SetJustifyH("LEFT")
@@ -345,33 +321,15 @@ function CoAAT_SettingsFrame.Build()
     rotSummary:SetText("|cffaaaaaa[No class selected]|r")
     f._rotSummary = rotSummary
 
-    -- ── Bottom buttons ──
-    local closeBtn2 = CreateFrame("Button", nil, f, "UIPanelButtonTemplate")
-    closeBtn2:SetSize(85, 24)
-    closeBtn2:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", -12, 12)
-    closeBtn2:SetText("Close")
-    closeBtn2:SetScript("OnClick", function() f:Hide() end)
-
-    local resetBtn = CreateFrame("Button", nil, f, "UIPanelButtonTemplate")
-    resetBtn:SetSize(120, 24)
-    resetBtn:SetPoint("BOTTOMLEFT", f, "BOTTOMLEFT", 12, 12)
-    resetBtn:SetText("Reset Position")
-    resetBtn:SetScript("OnClick", function()
-        if CoAAT_CombatHUD._hud then
-            CoAAT_CombatHUD._hud:ClearAllPoints()
-            CoAAT_CombatHUD._hud:SetPoint("CENTER", UIParent, "CENTER", 0, -150)
-        end
-        if CoAAT_DB then CoAAT_DB.hudPos = nil end
+    -- ── Bottom Button (The Single Setup Button) ──
+    local saveBtn = CreateFrame("Button", nil, f, "UIPanelButtonTemplate")
+    saveBtn:SetSize(352, 32)
+    saveBtn:SetPoint("BOTTOM", f, "BOTTOM", 0, 12)
+    saveBtn:SetText("⚡ Save & Setup Hotbar")
+    saveBtn:SetScript("OnClick", function()
+        CoAAT_SettingsFrame.SaveAndSetup()
     end)
-
-    local setupBarBtn = CreateFrame("Button", nil, f, "UIPanelButtonTemplate")
-    setupBarBtn:SetSize(140, 24)
-    setupBarBtn:SetPoint("BOTTOMLEFT", f, "BOTTOMLEFT", 136, 12)
-    setupBarBtn:SetText("⚡ Setup Bar Page 2")
-    setupBarBtn:SetScript("OnClick", function()
-        CoAAT_SettingsFrame.SetupHotbarPage2()
-    end)
-    f._setupBarBtn = setupBarBtn
+    f._saveBtn = saveBtn
 
     f:Hide()
     _frame = f
@@ -467,7 +425,6 @@ function CoAAT_SettingsFrame.OnOpen()
     end
 
     CoAAT_SettingsFrame.UpdateRotSummary()
-    f._applyBtn:Disable()
 end
 
 function CoAAT_SettingsFrame.Toggle()
@@ -485,6 +442,24 @@ function CoAAT_SettingsFrame.Toggle()
 end
 
 -- ─────────────────────────────────────────────
+-- Consolidated Save & Auto-Setup logic
+-- ─────────────────────────────────────────────
+function CoAAT_SettingsFrame.SaveAndSetup()
+    local classId = CoAAT_SettingsFrame._pendingClass
+    local specId  = CoAAT_SettingsFrame._pendingSpec
+    
+    if classId and specId then
+        CoAAT_Engine.SetClass(classId, specId)
+    end
+
+    -- Setup Hotbar Page 2 macros
+    CoAAT_SettingsFrame.SetupHotbarPage2()
+
+    -- Close window
+    CoAAT_SettingsFrame.Toggle()
+end
+
+-- ─────────────────────────────────────────────
 -- Dynamically create macros and place on Page 2
 -- ─────────────────────────────────────────────
 function CoAAT_SettingsFrame.SetupHotbarPage2()
@@ -495,7 +470,6 @@ function CoAAT_SettingsFrame.SetupHotbarPage2()
 
     local specDef = CoAAT_Engine.GetSpecDef()
     if not specDef or not specDef.abilities then
-        print("|cffff2222[CoAAT] Error: No active class specialization selected.|r")
         return
     end
 
