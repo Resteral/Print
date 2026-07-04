@@ -78,6 +78,12 @@ export default function MarketplaceClient({
         </div>
         <div className="flex gap-3 shrink-0">
           <Link 
+            href="/marketplace/arcade" 
+            className="inline-flex items-center justify-center bg-amber-500/10 text-amber-500 border border-amber-500/20 px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-amber-500 hover:text-white transition-all"
+          >
+            Arcade Lobbies
+          </Link>
+          <Link 
             href="/marketplace/debate" 
             className="inline-flex items-center justify-center bg-[#6366f1]/10 text-[#6366f1] border border-[#6366f1]/20 px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-[#6366f1] hover:text-white transition-all"
           >

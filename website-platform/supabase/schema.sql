@@ -318,3 +318,23 @@ CREATE POLICY "Users can insert support messages for their tickets" ON public.su
 
 CREATE POLICY "Anyone can insert support messages" ON public.support_messages FOR INSERT WITH CHECK (true);
 CREATE POLICY "Anyone can select support messages" ON public.support_messages FOR SELECT USING (true);
+
+-- PHASE 13: ARCADE & TUG LOBBIES
+CREATE TABLE IF NOT EXISTS public.tug_lobbies (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  name TEXT NOT NULL,
+  position INTEGER DEFAULT 0, -- -50 to +50
+  team_left_score INTEGER DEFAULT 0,
+  team_right_score INTEGER DEFAULT 0,
+  status TEXT DEFAULT 'active',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE public.tug_lobbies ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Anyone can select tug lobbies" ON public.tug_lobbies FOR SELECT USING (true);
+CREATE POLICY "Anyone can update tug lobbies" ON public.tug_lobbies FOR UPDATE USING (true);
+CREATE POLICY "Anyone can insert tug lobbies" ON public.tug_lobbies FOR INSERT WITH CHECK (true);
+
+-- Insert a default lobby if not exists
+INSERT INTO public.tug_lobbies (id, name, position) VALUES ('00000000-0000-0000-0000-000000000000', 'Tug Arena', 0) ON CONFLICT (id) DO NOTHING;
