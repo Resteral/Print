@@ -52,6 +52,31 @@ initFrame:SetScript("OnEvent", function(self, event, arg1)
 end)
 
 -- ─────────────────────────────────────────────────────────────────────────────
+-- Auto-Quest Accept & Turn-In QoL Feature
+-- ─────────────────────────────────────────────────────────────────────────────
+local autoQuestEnabled = true
+local questFrame = CreateFrame("Frame", ADDON_NAME .. "QuestFrame", UIParent)
+questFrame:RegisterEvent("QUEST_DETAIL")
+questFrame:RegisterEvent("QUEST_PROGRESS")
+questFrame:RegisterEvent("QUEST_COMPLETE")
+questFrame:SetScript("OnEvent", function(self, event, ...)
+    if not autoQuestEnabled then return end
+    
+    if event == "QUEST_DETAIL" then
+        AcceptQuest()
+    elseif event == "QUEST_PROGRESS" then
+        if IsQuestCompletable() then
+            CompleteQuest()
+        end
+    elseif event == "QUEST_COMPLETE" then
+        local choices = GetNumQuestChoices()
+        if choices == 0 or choices == 1 then
+            GetQuestReward(1)
+        end
+    end
+end)
+
+-- ─────────────────────────────────────────────────────────────────────────────
 -- Slash Commands
 -- ─────────────────────────────────────────────────────────────────────────────
 SLASH_COALVL1 = "/coalvl"
@@ -68,8 +93,11 @@ SlashCmdList["COALVL"] = function(msg)
     elseif msg == "hide" then
         CoALevelGuide_MainFrame.Hide()
 
+    elseif msg == "auto" then
+        autoQuestEnabled = not autoQuestEnabled
+        CoALevelGuide_Utils.Print("Auto Quest Accept/Turn-in set to: " .. (autoQuestEnabled and "|cff00ff00[ENABLED]|r" or "|cffff2222[DISABLED]|r"))
+
     elseif msg == "zone" then
-        -- Print best zone info to chat
         local zone = CoALevelGuide_Utils.GetBestZone()
         if zone then
             CoALevelGuide_Utils.Print("|cffFFD700" .. zone.name .. "|r (Lvl " .. zone.minLevel .. "-" .. zone.maxLevel .. ")")
@@ -83,7 +111,6 @@ SlashCmdList["COALVL"] = function(msg)
         StaticPopup_Show("COA_LEVEL_GUIDE_RESET_CONFIRM")
 
     elseif msg == "wp" then
-        -- Set waypoint for current step
         local phase = CoALevelGuide_Utils.GetCurrentPhase()
         if phase then
             for phaseIdx, p in ipairs(CoALevelGuide_Steps) do
@@ -92,7 +119,7 @@ SlashCmdList["COALVL"] = function(msg)
                     if nextStep then
                         CoALevelGuide_Waypoints.SetFromStep(nextStep)
                     else
-                        CoALevelGuide_Utils.Print("All steps in current phase are complete!")
+                        CoALevelGuide_Progress.Print("All steps in current phase are complete!")
                     end
                     break
                 end
@@ -102,23 +129,15 @@ SlashCmdList["COALVL"] = function(msg)
         end
 
     elseif msg == "class" then
-        -- Print current class leveling tips
         local _, playerClass = UnitClass("player")
-        local found = false
-        if playerClass then
-            for _, cls in ipairs(CoALevelGuide_Classes) do
-                -- Match by class name fragment (CoA classes don't match WoW native classes directly)
-                -- So we just show all classes as CoA overrides the system
-                break
-            end
-        end
         CoALevelGuide_MainFrame.Show()
-        CoALevelGuide_MainFrame.SwitchTab(2) -- Switch to Classes tab
+        CoALevelGuide_MainFrame.SwitchTab(2)
         CoALevelGuide_Utils.Print("Opened |cffFFD700Classes|r tab — browse all 21 CoA classes!")
 
     elseif msg == "help" then
         CoALevelGuide_Utils.Print("|cffFFD700Available Commands:|r")
         CoALevelGuide_Utils.Print("  |cff00ccff/coalvl|r            — Toggle guide window")
+        CoALevelGuide_Utils.Print("  |cff00ccff/coalvl auto|r         — Toggle Auto Quest Accept/Turn-in")
         CoALevelGuide_Utils.Print("  |cff00ccff/coalvl zone|r       — Show recommended zone")
         CoALevelGuide_Utils.Print("  |cff00ccff/coalvl wp|r         — Set waypoint to next step")
         CoALevelGuide_Utils.Print("  |cff00ccff/coalvl class|r      — Open class browser")
