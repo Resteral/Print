@@ -59,7 +59,16 @@ document.addEventListener('DOMContentLoaded', () => {
   initChairSystem();
   initWeb3();
   checkStripeReturn();
+
+  // Phase 18: Arena, Social, DevSpace, Stats, Omegle, Tug, Teams, Friends
+  initDevSpace();
+  initStatsLookup();
+  initDebateOmegle();
+  initTugLobbies();
+  initTeamsHub();
+  initFriendsHub();
 });
+
 
 
 /* ==========================================================================

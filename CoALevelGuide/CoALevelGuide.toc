@@ -1,0 +1,28 @@
+## Interface: 30300
+## Title: |cff00ccffCoA|r |cffFFD700Level Guide|r
+## Notes: |cffaaaaaaA comprehensive leveling guide for Conquest of Azeroth. Step-by-step zone progression, class tips, and waypoints.|r
+## Author: CoA Community
+## Version: 1.0.0
+## SavedVariables: CoALevelGuideDB
+## DefaultState: enabled
+
+# Core data
+Data\Zones.lua
+Data\Classes.lua
+Data\Steps.lua
+Data\Gear.lua
+
+# Core logic
+Core\Utils.lua
+Core\Waypoints.lua
+Core\Progress.lua
+
+# UI
+UI\MinimapButton.lua
+UI\MainFrame.lua
+UI\StepList.lua
+UI\ClassPanel.lua
+UI\Tooltip.lua
+
+# Entry point
+CoALevelGuide.lua

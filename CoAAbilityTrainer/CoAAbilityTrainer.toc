@@ -1,0 +1,28 @@
+## Interface: 30300
+## Title: |cffb048b5CoA|r |cff00ccffAbility Trainer|r
+## Notes: |cffaaaaaaWeakAuras-style ability learning UI for Conquest of Azeroth classes. Tracks cooldowns, procs, rotations, and resource usage with visual feedback.|r
+## Author: CoA Community
+## Version: 1.0.0
+## SavedVariables: CoAAT_DB
+
+# Data
+Data\Abilities.lua
+Data\Rotations.lua
+
+# Core
+Core\Engine.lua
+Core\CooldownTracker.lua
+Core\ProcAlert.lua
+Core\ResourceBar.lua
+
+# UI
+UI\AuraDisplay.lua
+UI\RotationHelper.lua
+UI\CombatHUD.lua
+UI\TutorialPanel.lua
+UI\SettingsFrame.lua
+
+UI\MinimapButton.lua
+
+# Entry
+CoAAbilityTrainer.lua

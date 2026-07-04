@@ -272,6 +272,30 @@
         </div>
       </div>
 
+      <!-- Row 5: Arena -->
+      <div style="display:flex; align-items:center; gap:0.8rem; flex-wrap:wrap; justify-content:center; width:100%;">
+        <span style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; color:#f59e0b; font-weight:800; background:rgba(245,158,11,0.08); padding:0.3rem 0.7rem; border-radius:6px; display:inline-flex; align-items:center; gap:0.3rem; border:1px solid rgba(245,158,11,0.15);">
+          🎮 Arena
+        </span>
+        <div class="nav-tabs" style="margin-bottom:0; display:flex; gap:0.5rem; flex-wrap:wrap; justify-content:center;">
+          <button class="tab-btn" data-tab="devspace" id="tab-devspace">🖥️ DevSpace</button>
+          <button class="tab-btn" data-tab="random-debate" id="tab-random-debate">🎲 Random Debate</button>
+          <button class="tab-btn" data-tab="tug-lobbies" id="tab-tug-lobbies">⚔️ Tug Lobbies</button>
+          <button class="tab-btn" data-tab="stats-lookup" id="tab-stats-lookup">🔍 Stats</button>
+        </div>
+      </div>
+
+      <!-- Row 6: Social -->
+      <div style="display:flex; align-items:center; gap:0.8rem; flex-wrap:wrap; justify-content:center; width:100%;">
+        <span style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; color:#10b981; font-weight:800; background:rgba(16,185,129,0.08); padding:0.3rem 0.7rem; border-radius:6px; display:inline-flex; align-items:center; gap:0.3rem; border:1px solid rgba(16,185,129,0.15);">
+          👥 Social
+        </span>
+        <div class="nav-tabs" style="margin-bottom:0; display:flex; gap:0.5rem; flex-wrap:wrap; justify-content:center;">
+          <button class="tab-btn" data-tab="teams-hub" id="tab-teams-hub">🛡️ Teams</button>
+          <button class="tab-btn" data-tab="friends-hub" id="tab-friends-hub">❤️ Friends</button>
+        </div>
+      </div>
+
     </nav>
 
     <!-- Main Content Area -->
@@ -940,6 +964,52 @@
                       <option value="fun">Fun Only</option>
                     </select>
                   </div>
+
+                  <!-- Bracket Type -->
+                  <div style="margin-top:1rem;">
+                    <label style="font-size:0.8rem; color:var(--color-text-muted); font-weight:600; display:block; margin-bottom:0.5rem;">🏆 Bracket Format</label>
+                    <div class="bracket-type-selector">
+                      <button type="button" class="bracket-type-btn selected" data-btype="single" onclick="selectBracketType('single',this)">
+                        <span class="bt-icon">🥇</span>Single Elim
+                      </button>
+                      <button type="button" class="bracket-type-btn" data-btype="double" onclick="selectBracketType('double',this)">
+                        <span class="bt-icon">⚔️</span>Double Elim
+                      </button>
+                      <button type="button" class="bracket-type-btn" data-btype="group" onclick="selectBracketType('group',this)">
+                        <span class="bt-icon">🔵</span>Group Stage
+                      </button>
+                    </div>
+                    <input type="hidden" id="tournament-bracket-type" value="single">
+                  </div>
+
+                  <!-- Draft Mode -->
+                  <div style="margin-top:1rem;">
+                    <label style="font-size:0.8rem; color:var(--color-text-muted); font-weight:600; display:block; margin-bottom:0.5rem;">📋 Draft Mode</label>
+                    <div class="draft-mode-selector">
+                      <button type="button" class="draft-mode-btn selected" data-dmode="standard" onclick="selectDraftMode('standard',this)">
+                        <span style="font-size:1.1rem;">🎲</span>Standard
+                      </button>
+                      <button type="button" class="draft-mode-btn" data-dmode="auction" onclick="selectDraftMode('auction',this)">
+                        <span style="font-size:1.1rem;">🔨</span>Live Auction
+                      </button>
+                      <button type="button" class="draft-mode-btn" data-dmode="snake" onclick="selectDraftMode('snake',this)">
+                        <span style="font-size:1.1rem;">🐍</span>Snake Draft
+                      </button>
+                    </div>
+                    <input type="hidden" id="tournament-draft-mode" value="standard">
+                  </div>
+
+                  <!-- Discord Webhook -->
+                  <div style="margin-top:1rem;">
+                    <label style="font-size:0.8rem; color:var(--color-text-muted); font-weight:600; display:block; margin-bottom:0.5rem;">🤖 Discord Webhook (optional)</label>
+                    <div class="webhook-config">
+                      <span style="font-size:1.1rem;">🔗</span>
+                      <input type="url" id="tournament-webhook-url" placeholder="https://discord.com/api/webhooks/..." autocomplete="off">
+                      <button type="button" class="btn btn-secondary" onclick="testWebhook()" style="font-size:0.72rem; padding:0.3rem 0.6rem; white-space:nowrap;">Test</button>
+                    </div>
+                    <p style="font-size:0.68rem; color:var(--color-text-muted); margin-top:0.4rem;">Bracket image will be auto-posted when tournament starts &amp; finishes.</p>
+                  </div>
+
                   <div style="background:rgba(16,185,129,0.06); border:1px solid rgba(16,185,129,0.15); padding:0.75rem; border-radius:6px; margin-top:1rem; font-size:0.8rem;">
                     💸 <strong style="color:var(--color-green);">Sponsor Bonus:</strong> We will seed the prize pool with an extra <span style="color:#fff; font-weight:bold;">150 $CITZ</span>!
                   </div>
@@ -2279,7 +2349,354 @@
         </div>
       </section>
 
+      <!-- ============================================================ -->
+      <!-- TAB: DEVSPACE — YouTube for Websites & Programs              -->
+      <!-- ============================================================ -->
+      <section id="devspace" class="tab-content">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1.5rem;">
+          <div>
+            <h2 class="section-title" style="margin-bottom:0.25rem;">🖥️ DevSpace</h2>
+            <p style="font-size:0.85rem; color:var(--color-text-muted);">The YouTube for builders. Share websites, apps, tools &amp; programs. Upvote, comment, discover.</p>
+          </div>
+          <button class="btn btn-primary" onclick="openDevSpaceSubmit()" style="padding:0.55rem 1.1rem; font-weight:700;">+ Submit Project</button>
+        </div>
+
+        <!-- Search + Filter Bar -->
+        <div style="display:flex; gap:0.75rem; margin-bottom:1.5rem; flex-wrap:wrap; align-items:center;">
+          <div class="stats-search-bar" style="flex:1; min-width:220px;">
+            <span style="color:var(--color-text-muted);">🔍</span>
+            <input type="text" id="devspace-search" placeholder="Search projects, creators, tags..." oninput="filterDevSpace()">
+          </div>
+          <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+            <button class="tab-btn active" onclick="setDevSpaceFilter('all',this)" style="padding:0.35rem 0.7rem; font-size:0.75rem;">🔥 Trending</button>
+            <button class="tab-btn" onclick="setDevSpaceFilter('website',this)" style="padding:0.35rem 0.7rem; font-size:0.75rem;">🌐 Websites</button>
+            <button class="tab-btn" onclick="setDevSpaceFilter('app',this)" style="padding:0.35rem 0.7rem; font-size:0.75rem;">📱 Apps</button>
+            <button class="tab-btn" onclick="setDevSpaceFilter('tool',this)" style="padding:0.35rem 0.7rem; font-size:0.75rem;">🔧 Tools</button>
+            <button class="tab-btn" onclick="setDevSpaceFilter('game',this)" style="padding:0.35rem 0.7rem; font-size:0.75rem;">🎮 Games</button>
+            <button class="tab-btn" onclick="setDevSpaceFilter('library',this)" style="padding:0.35rem 0.7rem; font-size:0.75rem;">📚 Libraries</button>
+          </div>
+        </div>
+
+        <!-- Featured Banner -->
+        <div id="devspace-featured" style="background:linear-gradient(135deg,rgba(99,91,255,0.15),rgba(16,185,129,0.08)); border:1px solid rgba(99,91,255,0.3); border-radius:16px; padding:1.5rem; margin-bottom:2rem; cursor:pointer;" onclick="openDevSpaceProject(0)">
+          <!-- Injected by JS -->
+        </div>
+
+        <!-- Projects Grid -->
+        <div id="devspace-grid" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:1.25rem;">
+          <!-- Injected by JS -->
+        </div>
+
+        <!-- Submit Modal -->
+        <div id="devspace-submit-modal" class="chair-paywall-overlay hidden">
+          <div class="chair-paywall-modal" style="max-width:560px;">
+            <button class="close-paywall" onclick="closeDevSpaceSubmit()">✕</button>
+            <div class="chair-paywall-title" style="font-size:1.3rem;">🖥️ Submit a Project</div>
+            <p style="font-size:0.82rem; color:var(--color-text-muted); margin-bottom:1.5rem;">Share your website, app, tool or program with the community.</p>
+            <div style="display:flex; flex-direction:column; gap:0.9rem;">
+              <div>
+                <label style="font-size:0.78rem; color:var(--color-text-muted); display:block; margin-bottom:0.3rem; font-weight:600;">Project Name *</label>
+                <input id="ds-title" type="text" placeholder="e.g. PixelForge Dashboard" style="width:100%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.12); border-radius:8px; padding:0.5rem 0.75rem; color:#fff; font-size:0.85rem; outline:none; box-sizing:border-box;">
+              </div>
+              <div>
+                <label style="font-size:0.78rem; color:var(--color-text-muted); display:block; margin-bottom:0.3rem; font-weight:600;">Description *</label>
+                <textarea id="ds-desc" rows="3" placeholder="What does it do? What problem does it solve?" style="width:100%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.12); border-radius:8px; padding:0.5rem 0.75rem; color:#fff; font-size:0.82rem; outline:none; resize:vertical; box-sizing:border-box; font-family:inherit;"></textarea>
+              </div>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem;">
+                <div>
+                  <label style="font-size:0.78rem; color:var(--color-text-muted); display:block; margin-bottom:0.3rem; font-weight:600;">Demo URL</label>
+                  <input id="ds-demo" type="url" placeholder="https://..." style="width:100%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.12); border-radius:8px; padding:0.5rem 0.75rem; color:#fff; font-size:0.82rem; outline:none; box-sizing:border-box;">
+                </div>
+                <div>
+                  <label style="font-size:0.78rem; color:var(--color-text-muted); display:block; margin-bottom:0.3rem; font-weight:600;">GitHub / Source</label>
+                  <input id="ds-github" type="url" placeholder="https://github.com/..." style="width:100%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.12); border-radius:8px; padding:0.5rem 0.75rem; color:#fff; font-size:0.82rem; outline:none; box-sizing:border-box;">
+                </div>
+              </div>
+              <div>
+                <label style="font-size:0.78rem; color:var(--color-text-muted); display:block; margin-bottom:0.3rem; font-weight:600;">Category</label>
+                <select id="ds-category" style="width:100%; background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.12); border-radius:8px; padding:0.5rem 0.75rem; color:#fff; font-size:0.82rem; outline:none;">
+                  <option value="website">🌐 Website</option>
+                  <option value="app">📱 App</option>
+                  <option value="tool">🔧 Tool</option>
+                  <option value="game">🎮 Game</option>
+                  <option value="library">📚 Library / Package</option>
+                </select>
+              </div>
+              <div>
+                <label style="font-size:0.78rem; color:var(--color-text-muted); display:block; margin-bottom:0.3rem; font-weight:600;">Tech Stack Tags (comma separated)</label>
+                <input id="ds-tags" type="text" placeholder="React, Node.js, Tailwind, Python..." style="width:100%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.12); border-radius:8px; padding:0.5rem 0.75rem; color:#fff; font-size:0.82rem; outline:none; box-sizing:border-box;">
+              </div>
+              <div>
+                <label style="font-size:0.78rem; color:var(--color-text-muted); display:block; margin-bottom:0.3rem; font-weight:600;">Thumbnail Emoji 🎨</label>
+                <input id="ds-emoji" type="text" placeholder="🚀" maxlength="4" style="width:80px; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.12); border-radius:8px; padding:0.5rem 0.75rem; color:#fff; font-size:1.5rem; outline:none; text-align:center;">
+              </div>
+              <button class="btn btn-primary" onclick="submitDevSpaceProject()" style="width:100%; padding:0.65rem; font-weight:700;">🚀 Publish Project (costs 25 $CITZ)</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Project Detail Modal (YouTube-style) -->
+        <div id="devspace-project-modal" class="chair-paywall-overlay hidden">
+          <div class="chair-paywall-modal" style="max-width:820px; max-height:90vh; overflow-y:auto; padding:0;">
+            <div id="devspace-project-detail"><!-- Injected by JS --></div>
+          </div>
+        </div>
+
+        <!-- Hidden canvas for bracket export (also used here for thumbnails) -->
+        <canvas id="bracket-canvas" style="display:none;" width="1200" height="800"></canvas>
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- TAB: STATS LOOKUP                                            -->
+      <!-- ============================================================ -->
+      <section id="stats-lookup" class="tab-content">
+        <h2 class="section-title text-center">🔍 Stats Lookup</h2>
+        <p class="section-intro text-center">Look up any citizen's public profile — debate record, $CITZ balance, badges, team, and more.</p>
+
+        <div style="max-width:700px; margin:0 auto;">
+          <div class="stats-search-bar" style="margin-bottom:1.5rem; box-shadow:0 4px 20px rgba(0,0,0,0.3);">
+            <span style="font-size:1.1rem;">🔍</span>
+            <input type="text" id="stats-username-input" placeholder="Enter username e.g. Citizen_Socrates..." onkeydown="if(event.key==='Enter')lookupStats()">
+            <button class="btn btn-primary" onclick="lookupStats()" style="padding:0.4rem 1rem; font-size:0.82rem; white-space:nowrap;">Look Up</button>
+          </div>
+
+          <!-- Quick links -->
+          <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:1.5rem; justify-content:center;">
+            <span style="font-size:0.75rem; color:var(--color-text-muted);">Try:</span>
+            <button onclick="quickLookup('VoxPopuli_33')" class="btn btn-secondary" style="font-size:0.72rem; padding:0.25rem 0.6rem;">VoxPopuli_33</button>
+            <button onclick="quickLookup('Citizen_Socrates')" class="btn btn-secondary" style="font-size:0.72rem; padding:0.25rem 0.6rem;">Citizen_Socrates</button>
+            <button onclick="quickLookup('PolicyWonk_9')" class="btn btn-secondary" style="font-size:0.72rem; padding:0.25rem 0.6rem;">PolicyWonk_9</button>
+            <button onclick="quickLookup('LogicLover')" class="btn btn-secondary" style="font-size:0.72rem; padding:0.25rem 0.6rem;">LogicLover</button>
+          </div>
+
+          <div id="stats-result" style="margin-top:1rem;">
+            <!-- Injected by JS -->
+          </div>
+
+          <!-- Global Leaderboards -->
+          <div style="margin-top:2.5rem; display:grid; grid-template-columns:1fr 1fr; gap:1.25rem;">
+            <div class="card" style="background:rgba(0,0,0,0.25); border-top:3px solid var(--color-gold);">
+              <h4 style="color:var(--color-gold); font-size:0.95rem; margin-bottom:1rem;">🏆 Top Debaters</h4>
+              <div id="stats-debate-leaderboard" style="display:flex; flex-direction:column; gap:0.5rem; font-size:0.8rem;"></div>
+            </div>
+            <div class="card" style="background:rgba(0,0,0,0.25); border-top:3px solid #a78bfa;">
+              <h4 style="color:#a78bfa; font-size:0.95rem; margin-bottom:1rem;">🪙 $CITZ Rich List</h4>
+              <div id="stats-citz-leaderboard" style="display:flex; flex-direction:column; gap:0.5rem; font-size:0.8rem;"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- TAB: RANDOM DEBATE (OMEGLE-STYLE)                            -->
+      <!-- ============================================================ -->
+      <section id="random-debate" class="tab-content">
+        <h2 class="section-title text-center">🎲 Random Debate</h2>
+        <p class="section-intro text-center">Get matched with a random opponent for a live 3-minute debate. Audience votes decide the winner. Top players make the leaderboard.</p>
+
+        <!-- Omegle State Panel -->
+        <div id="omegle-idle" class="omegle-state-panel">
+          <div style="font-size:4rem;">🎲</div>
+          <h3 style="font-size:1.4rem; font-weight:800; color:#fff; margin:0;">Ready to debate?</h3>
+          <p style="color:var(--color-text-muted); font-size:0.88rem; max-width:380px;">Click below to enter the queue. You'll be matched with a random opponent and assigned a debate topic instantly.</p>
+          <button class="btn btn-primary" id="btn-find-opponent" onclick="startOmegleQueue()" style="padding:0.75rem 2rem; font-size:1rem; font-weight:800; background:linear-gradient(135deg,#a78bfa,#10b981);">
+            🎲 Find Opponent
+          </button>
+          <p style="font-size:0.72rem; color:var(--color-text-muted);">Win Rate: <span id="omegle-win-rate" style="color:var(--color-green);">–</span> &nbsp;|&nbsp; Streak: <span id="omegle-streak" style="color:var(--color-gold);">–</span></p>
+        </div>
+
+        <div id="omegle-searching" class="omegle-state-panel hidden">
+          <div class="omegle-spinner"></div>
+          <h3 style="color:#fff; margin:0; font-size:1.1rem;">Searching for opponent...</h3>
+          <p style="font-size:0.8rem; color:var(--color-text-muted);">Average wait: 3 seconds</p>
+          <button class="btn btn-secondary" onclick="cancelOmegleQueue()" style="font-size:0.8rem; padding:0.4rem 1rem;">Cancel</button>
+        </div>
+
+        <div id="omegle-active" class="hidden">
+          <div style="background:rgba(16,185,129,0.06); border:1px solid rgba(16,185,129,0.2); border-radius:12px; padding:1rem 1.5rem; margin-bottom:1.25rem; text-align:center;" class="omegle-found-flash">
+            <div style="font-size:0.75rem; color:var(--color-text-muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.3rem;">Debate Topic</div>
+            <div id="omegle-topic" style="font-size:1.1rem; font-weight:700; color:#fff;"></div>
+          </div>
+          <div style="text-align:center; margin-bottom:1rem;">
+            <div id="omegle-phase-label" style="font-size:0.8rem; color:var(--color-text-muted); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.25rem;">Opening Argument</div>
+            <div class="debate-timer" id="omegle-timer">60</div>
+          </div>
+          <div class="omegle-arena">
+            <div class="omegle-player-box you">
+              <div style="font-size:1.8rem; margin-bottom:0.5rem;">🏛️</div>
+              <div style="font-weight:700; color:#fff; font-size:0.9rem;">You</div>
+              <div style="font-size:0.75rem; color:var(--color-blue); margin-top:0.25rem;">Citizen_X</div>
+              <div style="font-size:0.75rem; color:var(--color-text-muted); margin-top:0.5rem;" id="omegle-your-score">Score: 0</div>
+            </div>
+            <div class="omegle-vs-badge">VS</div>
+            <div class="omegle-player-box">
+              <div id="omegle-opp-avatar" style="font-size:1.8rem; margin-bottom:0.5rem;">🤖</div>
+              <div id="omegle-opp-name" style="font-weight:700; color:#fff; font-size:0.9rem;"></div>
+              <div id="omegle-opp-elo" style="font-size:0.75rem; color:var(--color-text-muted); margin-top:0.25rem;"></div>
+              <div style="font-size:0.75rem; color:var(--color-text-muted); margin-top:0.5rem;" id="omegle-opp-score">Score: 0</div>
+            </div>
+          </div>
+
+          <!-- Audience Vote -->
+          <div style="background:rgba(0,0,0,0.25); border-radius:12px; padding:1.25rem; margin-top:1.25rem; text-align:center;">
+            <div style="font-size:0.78rem; color:var(--color-text-muted); margin-bottom:0.5rem;">🗳️ Audience Vote (who's winning?)</div>
+            <div style="display:flex; gap:0.75rem; justify-content:center; margin-bottom:0.75rem;">
+              <button class="tug-vote-btn vote-a" onclick="voteOmegle('you')" style="flex:1; max-width:140px;">👍 You</button>
+              <button class="tug-vote-btn vote-b" onclick="voteOmegle('opp')" style="flex:1; max-width:140px;">👍 Opponent</button>
+            </div>
+            <div class="thumbs-bar"><div class="thumbs-fill" id="omegle-vote-bar" style="width:50%;"></div></div>
+            <div style="display:flex; justify-content:space-between; font-size:0.72rem; color:var(--color-text-muted); margin-top:0.25rem;">
+              <span id="omegle-votes-you">0 votes</span>
+              <span id="omegle-votes-opp">0 votes</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Leaderboard -->
+        <div style="margin-top:2rem;" id="omegle-leaderboard-section">
+          <h3 style="font-size:1rem; font-weight:800; color:#fff; margin-bottom:1rem;">🏆 Debate Omegle Leaderboard</h3>
+          <div id="omegle-leaderboard" style="display:flex; flex-direction:column; gap:0.5rem;"></div>
+        </div>
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- TAB: TUG LOBBIES                                             -->
+      <!-- ============================================================ -->
+      <section id="tug-lobbies" class="tab-content">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1.5rem;">
+          <div>
+            <h2 class="section-title" style="margin-bottom:0.25rem;">⚔️ Tug Lobbies</h2>
+            <p style="font-size:0.85rem; color:var(--color-text-muted);">Two teams debate a topic. The audience votes — pulling the bar toward the winning side. First to 100% wins.</p>
+          </div>
+          <button class="btn btn-primary" onclick="openCreateTugLobby()" style="padding:0.55rem 1.1rem; font-weight:700;">+ Create Lobby</button>
+        </div>
+
+        <!-- Create Lobby Form -->
+        <div id="tug-create-panel" class="hidden" style="background:rgba(0,0,0,0.25); border:1px solid rgba(245,158,11,0.2); border-radius:14px; padding:1.5rem; margin-bottom:1.5rem;">
+          <h4 style="color:var(--color-gold); margin-bottom:1rem; font-size:1rem;">🔨 Create a Tug Lobby</h4>
+          <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:0.75rem; margin-bottom:0.75rem;">
+            <div>
+              <label style="font-size:0.75rem; color:var(--color-text-muted); display:block; margin-bottom:0.3rem;">Lobby Name</label>
+              <input id="tug-name" type="text" placeholder="e.g. Freedom Debate #1" style="width:100%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:0.45rem 0.7rem; color:#fff; font-size:0.82rem; outline:none; box-sizing:border-box;">
+            </div>
+            <div>
+              <label style="font-size:0.75rem; color:var(--color-text-muted); display:block; margin-bottom:0.3rem;">Side A Team Name</label>
+              <input id="tug-side-a" type="text" placeholder="e.g. Federalists" style="width:100%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:0.45rem 0.7rem; color:#fff; font-size:0.82rem; outline:none; box-sizing:border-box;">
+            </div>
+            <div>
+              <label style="font-size:0.75rem; color:var(--color-text-muted); display:block; margin-bottom:0.3rem;">Side B Team Name</label>
+              <input id="tug-side-b" type="text" placeholder="e.g. Anti-Federalists" style="width:100%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:0.45rem 0.7rem; color:#fff; font-size:0.82rem; outline:none; box-sizing:border-box;">
+            </div>
+          </div>
+          <div>
+            <label style="font-size:0.75rem; color:var(--color-text-muted); display:block; margin-bottom:0.3rem;">Debate Topic</label>
+            <input id="tug-topic" type="text" placeholder="e.g. Should the federal government control healthcare?" style="width:100%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:0.45rem 0.7rem; color:#fff; font-size:0.82rem; outline:none; box-sizing:border-box;">
+          </div>
+          <div style="display:flex; gap:0.75rem; margin-top:0.75rem;">
+            <button class="btn btn-primary" onclick="createTugLobby()" style="padding:0.5rem 1.25rem;">Create Lobby</button>
+            <button class="btn btn-secondary" onclick="closeTugCreate()" style="padding:0.5rem 1rem;">Cancel</button>
+          </div>
+        </div>
+
+        <!-- Active Lobbies List -->
+        <div id="tug-lobbies-list" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(340px,1fr)); gap:1.25rem;">
+          <!-- Injected by JS -->
+        </div>
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- TAB: TEAMS HUB                                               -->
+      <!-- ============================================================ -->
+      <section id="teams-hub" class="tab-content">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1.5rem;">
+          <div>
+            <h2 class="section-title" style="margin-bottom:0.25rem;">🛡️ Teams</h2>
+            <p style="font-size:0.85rem; color:var(--color-text-muted);">Register a team, invite members, and compete as a unit in Tug Lobbies and Tournaments.</p>
+          </div>
+          <button class="btn btn-primary" onclick="openCreateTeam()" style="padding:0.55rem 1.1rem; font-weight:700;">+ Create Team</button>
+        </div>
+
+        <!-- Create Team Panel -->
+        <div id="team-create-panel" class="hidden" style="background:rgba(16,185,129,0.05); border:1px solid rgba(16,185,129,0.2); border-radius:14px; padding:1.5rem; margin-bottom:1.5rem;">
+          <h4 style="color:var(--color-green); margin-bottom:1rem;">⚔️ Register Your Team</h4>
+          <div style="display:grid; grid-template-columns:auto 1fr 1fr; gap:0.75rem; align-items:end; margin-bottom:0.75rem;">
+            <div>
+              <label style="font-size:0.75rem; color:var(--color-text-muted); display:block; margin-bottom:0.3rem;">Logo Emoji</label>
+              <input id="team-emoji" type="text" placeholder="🛡️" maxlength="4" style="width:70px; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:0.45rem; color:#fff; font-size:1.5rem; outline:none; text-align:center;">
+            </div>
+            <div>
+              <label style="font-size:0.75rem; color:var(--color-text-muted); display:block; margin-bottom:0.3rem;">Team Name</label>
+              <input id="team-name-input" type="text" placeholder="e.g. The Federalists" style="width:100%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:0.45rem 0.7rem; color:#fff; font-size:0.85rem; outline:none; box-sizing:border-box;">
+            </div>
+            <div>
+              <label style="font-size:0.75rem; color:var(--color-text-muted); display:block; margin-bottom:0.3rem;">Team Tag (3–5 chars)</label>
+              <input id="team-tag-input" type="text" placeholder="FED" maxlength="5" style="width:100%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:0.45rem 0.7rem; color:#fff; font-size:0.85rem; outline:none; box-sizing:border-box; text-transform:uppercase;">
+            </div>
+          </div>
+          <div style="margin-bottom:0.75rem;">
+            <label style="font-size:0.75rem; color:var(--color-text-muted); display:block; margin-bottom:0.3rem;">Invite Members (usernames, comma separated)</label>
+            <input id="team-members-input" type="text" placeholder="VoxPopuli_33, PolicyWonk_9, LogicLover..." style="width:100%; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:0.45rem 0.7rem; color:#fff; font-size:0.82rem; outline:none; box-sizing:border-box;">
+          </div>
+          <div style="display:flex; gap:0.75rem;">
+            <button class="btn btn-primary" onclick="registerTeam()" style="padding:0.5rem 1.25rem;">Register Team (100 $CITZ)</button>
+            <button class="btn btn-secondary" onclick="closeCreateTeam()" style="padding:0.5rem 1rem;">Cancel</button>
+          </div>
+        </div>
+
+        <!-- My Team -->
+        <div id="my-team-section" style="margin-bottom:2rem;"></div>
+
+        <!-- All Teams -->
+        <h3 style="font-size:1rem; font-weight:800; color:#fff; margin-bottom:1rem;">🌐 All Registered Teams</h3>
+        <div id="all-teams-grid" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:1rem;"></div>
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- TAB: FRIENDS HUB                                             -->
+      <!-- ============================================================ -->
+      <section id="friends-hub" class="tab-content">
+        <h2 class="section-title text-center">❤️ Friends</h2>
+        <p class="section-intro text-center">Add citizens as friends, see their activity, and get notified when they enter debates or tournaments.</p>
+
+        <!-- Add Friend Bar -->
+        <div class="stats-search-bar" style="margin-bottom:1.5rem; max-width:500px; margin-left:auto; margin-right:auto;">
+          <span style="font-size:1rem;">👤</span>
+          <input type="text" id="friend-add-input" placeholder="Enter username to add as friend...">
+          <button class="btn btn-primary" onclick="sendFriendRequest()" style="padding:0.4rem 1rem; font-size:0.82rem; white-space:nowrap;">Add Friend</button>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem;">
+          <!-- Friends List -->
+          <div>
+            <h3 style="font-size:0.95rem; font-weight:800; color:#fff; margin-bottom:0.75rem; display:flex; align-items:center; gap:0.4rem;">
+              <span style="background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.25); color:var(--color-green); font-size:0.7rem; font-weight:700; padding:0.15rem 0.5rem; border-radius:50px;" id="friends-count-badge">0</span>
+              Friends
+            </h3>
+            <div id="friends-list" style="display:flex; flex-direction:column; gap:0.5rem; max-height:480px; overflow-y:auto;">
+              <!-- Injected by JS -->
+            </div>
+          </div>
+
+          <!-- Right column: Requests + Activity -->
+          <div style="display:flex; flex-direction:column; gap:1.25rem;">
+            <div>
+              <h3 style="font-size:0.95rem; font-weight:800; color:#fff; margin-bottom:0.75rem;">📬 Pending Requests</h3>
+              <div id="friend-requests-list" style="display:flex; flex-direction:column; gap:0.5rem;">
+                <!-- Injected by JS -->
+              </div>
+            </div>
+            <div>
+              <h3 style="font-size:0.95rem; font-weight:800; color:#fff; margin-bottom:0.75rem;">📰 Friends' Activity</h3>
+              <div id="friends-activity-feed" style="display:flex; flex-direction:column; gap:0.5rem; font-size:0.8rem; max-height:280px; overflow-y:auto;">
+                <!-- Injected by JS -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
     </main>
+
 
     <!-- Footer -->
     <footer class="main-footer">
