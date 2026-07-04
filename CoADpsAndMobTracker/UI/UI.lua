@@ -226,6 +226,8 @@ function CoADpsAndMobTracker_UI.ReportDPS()
         channel = "RAID"
     elseif UnitInParty("player") then
         channel = "PARTY"
+    elseif IsInGuild() then
+        channel = "GUILD"
     end
 
     SendChatMessage("=== CoA DPS Tracker ===", channel)
