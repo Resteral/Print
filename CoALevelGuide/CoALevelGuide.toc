@@ -3,7 +3,7 @@
 ## Notes: |cffaaaaaaA comprehensive leveling guide for Conquest of Azeroth. Step-by-step zone progression, class tips, and waypoints.|r
 ## Author: CoA Community
 ## Version: 1.0.0
-## SavedVariables: CoALevelGuideDB
+## SavedVariables: CoALevelGuideDB, CoALevelGuideLootDB
 ## DefaultState: enabled
 
 # Core data
@@ -17,6 +17,7 @@ Data\LootTables.lua
 Core\Utils.lua
 Core\Waypoints.lua
 Core\Progress.lua
+Core\LootTracker.lua
 
 # UI
 UI\MinimapButton.lua
