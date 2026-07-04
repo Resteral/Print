@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Globe, MessageSquare, Megaphone, Settings, Link as LinkIcon, ShoppingCart, Bot, Inbox, Compass } from "lucide-react";
+import { LayoutDashboard, Globe, MessageSquare, Megaphone, Settings, Link as LinkIcon, ShoppingCart, Bot, Inbox, Compass, Truck } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -22,6 +22,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <NavLink href="/dashboard/sites" icon={<Globe size={18} />} label="My Sites" />
           <NavLink href="/dashboard/store" icon={<ShoppingCart size={18} />} label="E-Commerce" />
           <NavLink href="/dashboard/inbox" icon={<Inbox size={18} />} label="CRM Inbox" />
+          <NavLink href="/dashboard/drivers" icon={<Truck size={18} />} label="Delivery Drivers" />
           <NavLink href="/dashboard/chatbot" icon={<MessageSquare size={18} />} label="AI Chatbot" />
           <NavLink href="/dashboard/discord" icon={<Compass size={18} />} label="Discord Gen" />
           <NavLink href="/dashboard/integrations" icon={<LinkIcon size={18} />} label="Integrations" />

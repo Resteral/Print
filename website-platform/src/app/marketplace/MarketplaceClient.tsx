@@ -69,11 +69,19 @@ export default function MarketplaceClient({
         Back to Home
       </Link>
 
-      <div className="mb-12">
-        <h1 className="text-4xl font-extrabold tracking-tight mb-2 bg-gradient-to-r from-primary to-blue-400 bg-clip-text text-transparent">
-          Local Product Finder
-        </h1>
-        <p className="text-gray-400">Find products in stock at local stores right next to you.</p>
+      <div className="mb-12 flex flex-col md:flex-row justify-between md:items-end gap-4">
+        <div>
+          <h1 className="text-4xl font-extrabold tracking-tight mb-2 bg-gradient-to-r from-primary to-blue-400 bg-clip-text text-transparent">
+            Local Product Finder
+          </h1>
+          <p className="text-gray-400">Find products in stock at local stores right next to you.</p>
+        </div>
+        <Link 
+          href="/drivers/signup" 
+          className="inline-flex items-center justify-center bg-primary/20 text-primary border border-primary/30 px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-primary hover:text-white transition-all shrink-0"
+        >
+          Become a Driver
+        </Link>
       </div>
 
       {/* Search Bar Panel */}
