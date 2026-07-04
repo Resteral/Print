@@ -24,6 +24,11 @@ local ClassColors = {
     WARRIOR     = { r=0.78, g=0.61, b=0.43 },
 }
 
+local function GetClassHexColor(classToken)
+    local c = ClassColors[classToken] or { r=0.5, g=0.5, b=0.5 }
+    return string.format("ff%02x%02x%02x", c.r*255, c.g*255, c.b*255)
+end
+
 -- Threat Level Colors (0=Safe, 1=Volatile, 2=Pulling, 3=Aggro)
 local ThreatColors = {
     [0] = { r=0.0, g=0.7, b=0.0, hex="|cff00ee00" }, -- Safe Green
@@ -381,6 +386,26 @@ function CoADpsAndMobTracker_UI.Refresh()
             valueStr:SetFont("Fonts\\FRIZQT__.TTF", 10, "OUTLINE")
             valueStr:SetText(string.format("%s (%d)", formattedVal, dps))
 
+            -- Tooltip on hover
+            rFrame:SetScript("OnEnter", function(self)
+                GameTooltip:SetOwner(self, "ANCHOR_BOTTOMRIGHT")
+                GameTooltip:ClearLines()
+                local hex = GetClassHexColor(row.class)
+                GameTooltip:AddLine("|c" .. hex .. row.name .. "|r")
+                GameTooltip:AddDoubleLine("Class:", "|c" .. hex .. row.class .. "|r")
+                GameTooltip:AddDoubleLine("Total Damage:", CoADpsAndMobTracker_Engine.FormatNumber(row.damage) .. " (" .. row.damage .. ")")
+                local dps = CoADpsAndMobTracker_Engine.GetPlayerDPS(row.guid)
+                GameTooltip:AddDoubleLine("DPS:", tostring(dps))
+                local share = highestDmg > 0 and (row.damage / highestDmg * 100) or 0
+                GameTooltip:AddDoubleLine("Damage Share:", string.format("%.1f%%", share))
+                GameTooltip:AddLine(" ")
+                GameTooltip:AddLine("|cffFFD700Left-Click to toggle spell details|r")
+                GameTooltip:Show()
+            end)
+            rFrame:SetScript("OnLeave", function()
+                GameTooltip:Hide()
+            end)
+
             -- Open details popup on click
             rFrame:SetScript("OnClick", function()
                 PlaySound(856)
@@ -461,6 +486,28 @@ function CoADpsAndMobTracker_UI.Refresh()
             local hpVal = CoADpsAndMobTracker_Engine.FormatNumber(mob.hp)
             local pctVal = string.format("%d%%", hpPct * 100)
             hpStr:SetText(tc.hex .. hpVal .. " (" .. pctVal .. ")|r")
+
+            -- Tooltip on hover
+            rFrame:EnableMouse(true)
+            rFrame:SetScript("OnEnter", function(self)
+                GameTooltip:SetOwner(self, "ANCHOR_BOTTOMRIGHT")
+                GameTooltip:ClearLines()
+                GameTooltip:AddLine("|cffff2222" .. mob.name .. "|r")
+                GameTooltip:AddDoubleLine("Health:", string.format("%d / %d (%d%%)", mob.hp, mob.maxHp, hpPct * 100))
+                local tc = ThreatColors[mob.threat] or ThreatColors[0]
+                local threatNames = {
+                    [0] = "Safe (Aggro on Tank)",
+                    [1] = "Volatile Threat Warning",
+                    [2] = "Pulling Threat!",
+                    [3] = "Active Aggro (Hitting You!)"
+                }
+                GameTooltip:AddDoubleLine("Threat Level:", tc.hex .. threatNames[mob.threat] .. "|r")
+                GameTooltip:AddDoubleLine("Targeting:", (mob.target == UnitName("player") and "|cffff2222★ YOU ★|r" or mob.target))
+                GameTooltip:Show()
+            end)
+            rFrame:SetScript("OnLeave", function()
+                GameTooltip:Hide()
+            end)
 
             yOff = yOff - 30
         end
