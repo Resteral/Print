@@ -12,6 +12,7 @@ Data\Classes.lua
 Data\Steps.lua
 Data\Gear.lua
 Data\PvPGuides.lua
+Data\TalentPaths.lua
 Data\LootTables.lua
 
 # Core logic

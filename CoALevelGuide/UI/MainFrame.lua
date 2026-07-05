@@ -23,7 +23,7 @@ local C = {
     highlight  = { r=0.1,  g=0.2,  b=0.35, a=0.6  },
 }
 
-local tabs = { "Guide", "Classes", "Zone Info", "Gear Guide", "PvP Guide" }
+local tabs = { "Guide", "Classes", "Talents", "Zone Info", "Gear Guide", "PvP Guide" }
 local activeTab = 1
 local tabFrames = {}
 
@@ -275,6 +275,10 @@ function CoALevelGuide_MainFrame.Create()
     CoALevelGuide_StepList.Build(content)
     CoALevelGuide_ClassPanel.Build(content)
 
+    -- Talents panel
+    local talentsPanel = CoALevelGuide_MainFrame.BuildTalentsPanel(content)
+    f._talentsPanelFrame = talentsPanel
+
     -- Zone info panel (simple scroll)
     local zonePanel = CoALevelGuide_MainFrame.BuildZonePanel(content)
     f._zonePanelFrame = zonePanel
@@ -370,12 +374,22 @@ function CoALevelGuide_MainFrame.SwitchTab(idx)
         if idx == 2 then CoALevelGuide_ClassPanel._frame:Show()
         else              CoALevelGuide_ClassPanel._frame:Hide() end
     end
+    if f._talentsPanelFrame then
+        if idx == 3 then
+            f._talentsPanelFrame:Show()
+            if CoALevelGuide_MainFrame.RefreshTalents then
+                CoALevelGuide_MainFrame.RefreshTalents()
+            end
+        else
+            f._talentsPanelFrame:Hide()
+        end
+    end
     if f._zonePanelFrame then
-        if idx == 3 then f._zonePanelFrame:Show()
+        if idx == 4 then f._zonePanelFrame:Show()
         else              f._zonePanelFrame:Hide() end
     end
     if f._gearPanelFrame then
-        if idx == 4 then
+        if idx == 5 then
             f._gearPanelFrame:Show()
             local activeClass = CoALevelGuideDB.activeClass or CoALevelGuide_Utils.GetClass():lower()
             if not CoALevelGuide_ClassBiS[activeClass] then
@@ -389,7 +403,7 @@ function CoALevelGuide_MainFrame.SwitchTab(idx)
         end
     end
     if f._pvpPanelFrame then
-        if idx == 5 then
+        if idx == 6 then
             f._pvpPanelFrame:Show()
             if CoALevelGuide_MainFrame.RefreshPvP then
                 CoALevelGuide_MainFrame.RefreshPvP()
@@ -1146,6 +1160,264 @@ function CoALevelGuide_MainFrame.BuildPvPPanel(parent)
 
     CoALevelGuide_MainFrame.RefreshPvP = RenderPvPContent
     RenderPvPContent()
+
+    panel:Hide()
+    return panel
+end
+
+-- ─────────────────────────────────────────────
+-- Talent Panel (Tab 3)
+-- ─────────────────────────────────────────────
+local function ImportCustomTalentString(customStr)
+    if not customStr or customStr == "" then return end
+    if InCombatLockdown() then
+        print("|cffff2222[CoALvl] Error: Cannot learn talents in combat!|r")
+        return
+    end
+
+    local unspent = GetUnspentTalentPoints()
+    if not unspent or unspent <= 0 then
+        print("|cff00ccff[CoALvl] You have no unspent talent points!|r")
+        return
+    end
+
+    local spentAny = false
+    for tab, idx, rank in customStr:gmatch("(%d+)%-(%d+):?(%d*)") do
+        if unspent <= 0 then break end
+        tab = tonumber(tab)
+        idx = tonumber(idx)
+        rank = tonumber(rank) or 1
+        
+        for r = 1, rank do
+            if unspent <= 0 then break end
+            local name, _, _, _, currentRank, maxRank = GetTalentInfo(tab, idx)
+            if name and currentRank < maxRank then
+                LearnTalent(tab, idx)
+                unspent = unspent - 1
+                spentAny = true
+            end
+        end
+    end
+
+    if spentAny then
+        print("|cff00ccff[CoALvl] Custom talents successfully allocated!|r")
+        if CoALevelGuide_MainFrame.RefreshTalents then
+            CoALevelGuide_MainFrame.RefreshTalents()
+        end
+    else
+        print("|cffaaaaaa[CoALvl] No talents were learned. Ensure you have unspent points and the talents aren't already maxed.|r")
+    end
+end
+
+function CoALevelGuide_MainFrame.BuildTalentsPanel(parent)
+    local panel = CreateFrame("ScrollFrame", "CoALevelGuideTalentsScroll", parent, "UIPanelScrollFrameTemplate")
+    panel:SetAllPoints(parent)
+
+    local child = CreateFrame("Frame", nil, panel)
+    child:SetWidth(parent:GetWidth() - 24)
+    child:SetHeight(1)
+    panel:SetScrollChild(child)
+
+    local function RenderTalentsContent()
+        -- Clear existing child elements
+        local children = { child:GetChildren() }
+        for _, obj in ipairs(children) do
+            obj:Hide()
+            obj:SetParent(nil)
+        end
+        local regions = { child:GetRegions() }
+        for _, obj in ipairs(regions) do
+            obj:Hide()
+        end
+
+        local activeClass = CoALevelGuideDB.activeClass or CoALevelGuide_Utils.GetClass():lower()
+        local activeTheme = GetActiveTheme()
+
+        local yOff = -8
+        local W = child:GetWidth()
+
+        -- Header
+        local header = child:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+        header:SetPoint("TOPLEFT", child, "TOPLEFT", 4, yOff)
+        header:SetFont("Fonts\\FRIZQT__.TTF", 13, "OUTLINE")
+        header:SetText("|cff00ccff⚡ Auto-Talent Learner & Import|r")
+        yOff = yOff - 22
+
+        local sub = child:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+        sub:SetPoint("TOPLEFT", child, "TOPLEFT", 4, yOff)
+        sub:SetWidth(W - 8)
+        sub:SetJustifyH("LEFT")
+        sub:SetFont("Fonts\\FRIZQT__.TTF", 10, "OUTLINE")
+        sub:SetText("|cffaaaaaaSelect a spec build below to auto-spend your talent points, or import a custom build code directly.|r")
+        yOff = yOff - 26
+
+        -- Active class stats / points
+        local points = GetUnspentTalentPoints() or 0
+        local pointsText = child:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+        pointsText:SetPoint("TOPLEFT", child, "TOPLEFT", 4, yOff)
+        pointsText:SetFont("Fonts\\FRIZQT__.TTF", 11, "OUTLINE")
+        pointsText:SetText(string.format("Your Class: %s%s|r   •   Available Points: |cff00ff00%d|r", activeTheme.logo:sub(1,10), activeClass:gsub("^%a", string.upper), points))
+        yOff = yOff - 20
+
+        -- Divider
+        local sep = child:CreateTexture(nil, "OVERLAY")
+        sep:SetSize(W, 1)
+        sep:SetPoint("TOPLEFT", child, "TOPLEFT", 0, yOff)
+        sep:SetTexture(activeTheme.border.r, activeTheme.border.g, activeTheme.border.b, 0.3)
+        yOff = yOff - 12
+
+        -- Get recommended specs for active class
+        local classTalents = CoALevelGuide_TalentPaths[activeClass]
+        if classTalents then
+            -- Section: Recommended Spec Builds
+            local recHdr = child:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+            recHdr:SetPoint("TOPLEFT", child, "TOPLEFT", 4, yOff)
+            recHdr:SetFont("Fonts\\FRIZQT__.TTF", 11, "OUTLINE")
+            recHdr:SetText("|cffFFD700Recommended Spec Builds:|r")
+            yOff = yOff - 18
+
+            for specName, specData in pairs(classTalents) do
+                local specFrame = CreateFrame("Frame", nil, child)
+                specFrame:SetWidth(W - 8)
+                specFrame:SetPoint("TOPLEFT", child, "TOPLEFT", 4, yOff)
+
+                local sTitle = specFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+                sTitle:SetPoint("TOPLEFT", specFrame, "TOPLEFT", 8, -6)
+                sTitle:SetFont("Fonts\\FRIZQT__.TTF", 11, "OUTLINE")
+                sTitle:SetText("|cff00ffaa" .. specName:gsub("^%a", string.upper) .. "|r")
+
+                local sDesc = specFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+                sDesc:SetPoint("TOPLEFT", specFrame, "TOPLEFT", 8, -20)
+                sDesc:SetWidth(specFrame:GetWidth() - 140)
+                sDesc:SetJustifyH("LEFT")
+                sDesc:SetFont("Fonts\\FRIZQT__.TTF", 9, "OUTLINE")
+                sDesc:SetText("|cffcccccc" .. specData.desc .. "|r")
+
+                -- Auto-learn button
+                local learnBtn = CreateFrame("Button", nil, specFrame, "UIPanelButtonTemplate")
+                learnBtn:SetSize(120, 24)
+                learnBtn:SetPoint("TOPRIGHT", specFrame, "TOPRIGHT", -8, -12)
+                learnBtn:SetText("⚡ Learn Spec")
+                learnBtn:SetScript("OnClick", function()
+                    if InCombatLockdown() then
+                        print("|cffff2222[CoALvl] Error: Cannot allocate talents in combat!|r")
+                        return
+                    end
+                    local unspent = GetUnspentTalentPoints()
+                    if not unspent or unspent <= 0 then
+                        print("|cff00ccff[CoALvl] No unspent talent points!|r")
+                        return
+                    end
+                    local spentAny = false
+                    for _, node in ipairs(specData.path) do
+                        if unspent <= 0 then break end
+                        local tab, index = node[1], node[2]
+                        local name, _, _, _, currentRank, maxRank = GetTalentInfo(tab, index)
+                        if name and currentRank < maxRank then
+                            LearnTalent(tab, index)
+                            unspent = unspent - 1
+                            spentAny = true
+                        end
+                    end
+                    if spentAny then
+                        print("|cff00ccff[CoALvl] Talents allocated successfully!|r")
+                        RenderTalentsContent()
+                    else
+                        print("|cffaaaaaa[CoALvl] Talents already match this spec path!|r")
+                    end
+                end)
+
+                -- EditBox to view/copy import code
+                local codeBox = CreateFrame("EditBox", nil, specFrame)
+                codeBox:SetSize(specFrame:GetWidth() - 16, 20)
+                codeBox:SetPoint("TOPLEFT", specFrame, "TOPLEFT", 8, -38)
+                codeBox:SetFontObject("GameFontHighlightSmall")
+                codeBox:SetAutoFocus(false)
+                codeBox:EnableMouse(true)
+                codeBox:SetText(specData.code)
+                codeBox:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
+                codeBox:SetScript("OnEditFocusGained", function(self) self:HighlightText() end)
+
+                -- Codebox background
+                local cbBG = codeBox:CreateTexture(nil, "BACKGROUND")
+                cbBG:SetAllPoints()
+                cbBG:SetTexture(0, 0, 0, 0.3)
+
+                local sFrameH = 64
+                specFrame:SetHeight(sFrameH)
+
+                local sfBG = specFrame:CreateTexture(nil, "BACKGROUND")
+                sfBG:SetAllPoints()
+                sfBG:SetTexture(0.04, 0.08, 0.18, 0.5)
+
+                local sfBorder = specFrame:CreateTexture(nil, "OVERLAY")
+                sfBorder:SetSize(2, sFrameH)
+                sfBorder:SetPoint("TOPLEFT", specFrame, "TOPLEFT", 0, 0)
+                sfBorder:SetTexture(activeTheme.border.r, activeTheme.border.g, activeTheme.border.b, 0.8)
+
+                yOff = yOff - sFrameH - 12
+            end
+        else
+            -- Notice for other classes
+            local notice = child:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+            notice:SetPoint("TOPLEFT", child, "TOPLEFT", 6, yOff)
+            notice:SetWidth(W - 12)
+            notice:SetJustifyH("LEFT")
+            notice:SetFont("Fonts\\FRIZQT__.TTF", 10, "OUTLINE")
+            notice:SetText("|cffaaaaaaCustom spec builds are defined for Necromancer, Felsworn, and Reaper. For other classes, you can use the Custom Import tool below.|r")
+            yOff = yOff - 36
+        end
+
+        -- Section: Custom Talent String Import
+        local impHdr = child:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+        impHdr:SetPoint("TOPLEFT", child, "TOPLEFT", 4, yOff)
+        impHdr:SetFont("Fonts\\FRIZQT__.TTF", 11, "OUTLINE")
+        impHdr:SetText("|cffFFD700📋 Import Custom Talent String:|r")
+        yOff = yOff - 18
+
+        local impDesc = child:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+        impDesc:SetPoint("TOPLEFT", child, "TOPLEFT", 6, yOff)
+        impDesc:SetWidth(W - 12)
+        impDesc:SetJustifyH("LEFT")
+        impDesc:SetFont("Fonts\\FRIZQT__.TTF", 9, "OUTLINE")
+        impDesc:SetText("|cffaaaaaaPaste a talent path string (format: 'tab-index:points, tab-index:points') and click Import to spend points.|r")
+        yOff = yOff - 26
+
+        -- Paste EditBox
+        local pasteBox = CreateFrame("EditBox", "CoALvlCustomTalentPaste", child)
+        pasteBox:SetSize(W - 134, 30)
+        pasteBox:SetPoint("TOPLEFT", child, "TOPLEFT", 4, yOff)
+        pasteBox:SetFontObject("GameFontHighlightSmall")
+        pasteBox:SetAutoFocus(false)
+        pasteBox:EnableMouse(true)
+        pasteBox:SetText("")
+        pasteBox:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
+
+        local pbBG = pasteBox:CreateTexture(nil, "BACKGROUND")
+        pbBG:SetAllPoints()
+        pbBG:SetTexture(0.02, 0.02, 0.05, 0.9)
+
+        -- Import Button
+        local impBtn = CreateFrame("Button", nil, child, "UIPanelButtonTemplate")
+        impBtn:SetSize(120, 30)
+        impBtn:SetPoint("TOPRIGHT", child, "TOPRIGHT", -4, yOff)
+        impBtn:SetText("⚡ Import Build")
+        impBtn:SetScript("OnClick", function()
+            local customStr = pasteBox:GetText()
+            if not customStr or customStr == "" then
+                print("|cffff2222[CoALvl] Please paste a talent string first!|r")
+                return
+            end
+            ImportCustomTalentString(customStr)
+        end)
+
+        yOff = yOff - 42
+
+        child:SetHeight(math.abs(yOff) + 20)
+    end
+
+    CoALevelGuide_MainFrame.RefreshTalents = RenderTalentsContent
+    RenderTalentsContent()
 
     panel:Hide()
     return panel
