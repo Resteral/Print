@@ -16,12 +16,12 @@ function CoAAT_TargetHeadbar.Build(parent)
     local f = CreateFrame("Frame", nil, parent)
     f:SetAllPoints(parent)
 
-    -- Glassmorphic BG with horizontal fade out
+    -- Glassmorphic BG with horizontal fade out (near transparent to prevent box lines)
     local bg = f:CreateTexture(nil, "BACKGROUND")
     bg:SetAllPoints()
-    bg:SetTexture(0.03, 0.05, 0.12, 0.88)
+    bg:SetTexture(0.03, 0.05, 0.12, 0.05)
     if bg.SetGradientAlpha then
-        bg:SetGradientAlpha("HORIZONTAL", 0.03, 0.05, 0.12, 0.88, 0.03, 0.05, 0.12, 0.0)
+        bg:SetGradientAlpha("HORIZONTAL", 0.03, 0.05, 0.12, 0.05, 0.03, 0.05, 0.12, 0.0)
     end
 
     -- Accent side border (Left side)
@@ -36,10 +36,10 @@ function CoAAT_TargetHeadbar.Build(parent)
     model:SetSize(36, 36)
     model:SetPoint("LEFT", f, "LEFT", 10, 0)
     
-    -- Model background border
+    -- Model background border (fully transparent)
     local mb = model:CreateTexture(nil, "BACKGROUND")
     mb:SetAllPoints()
-    mb:SetTexture(0.04, 0.08, 0.18, 0.4)
+    mb:SetTexture(0.0, 0.0, 0.0, 0.0)
 
     -- Circular bezel ring overlay
     local ring = f:CreateTexture(nil, "OVERLAY")
@@ -104,18 +104,66 @@ function CoAAT_TargetHeadbar.Build(parent)
 
     f._mpBar = mpBar
 
+    -- Create Buff and Debuff icons under the frame
+    local buffFrames = {}
+    local debuffFrames = {}
+    for i = 1, 8 do
+        -- Buffs
+        local b = CreateFrame("Frame", nil, f)
+        b:SetSize(15, 15)
+        if i == 1 then
+            b:SetPoint("TOPLEFT", f, "BOTTOMLEFT", 10, -5)
+        else
+            b:SetPoint("LEFT", buffFrames[i-1], "RIGHT", 4, 0)
+        end
+        local bTex = b:CreateTexture(nil, "ARTWORK")
+        bTex:SetAllPoints()
+        b.tex = bTex
+        local bCount = b:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+        bCount:SetPoint("BOTTOMRIGHT", b, "BOTTOMRIGHT", 2, -2)
+        bCount:SetFont("Fonts\\FRIZQT__.TTF", 8, "OUTLINE")
+        b.count = bCount
+        b:Hide()
+        buffFrames[i] = b
+
+        -- Debuffs
+        local d = CreateFrame("Frame", nil, f)
+        d:SetSize(15, 15)
+        if i == 1 then
+            d:SetPoint("TOPLEFT", f, "BOTTOMLEFT", 10, -22)
+        else
+            d:SetPoint("LEFT", debuffFrames[i-1], "RIGHT", 4, 0)
+        end
+        local dTex = d:CreateTexture(nil, "ARTWORK")
+        dTex:SetAllPoints()
+        d.tex = dTex
+        local dCount = d:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+        dCount:SetPoint("BOTTOMRIGHT", d, "BOTTOMRIGHT", 2, -2)
+        dCount:SetFont("Fonts\\FRIZQT__.TTF", 8, "OUTLINE")
+        d.count = dCount
+        d:Hide()
+        debuffFrames[i] = d
+    end
+    f._buffs = buffFrames
+    f._debuffs = debuffFrames
+
     _frame = f
     _frame:RegisterEvent("PLAYER_TARGET_CHANGED")
     _frame:RegisterEvent("UNIT_HEALTH")
     _frame:RegisterEvent("UNIT_MAXHEALTH")
     _frame:RegisterEvent("UNIT_POWER")
     _frame:RegisterEvent("UNIT_MAXPOWER")
+    _frame:RegisterEvent("UNIT_AURA")
 
     _frame:SetScript("OnEvent", function(self, event, unit, ...)
         if event == "PLAYER_TARGET_CHANGED" then
             CoAAT_TargetHeadbar.UpdateTarget()
         elseif unit == "target" then
-            CoAAT_TargetHeadbar.UpdateStats()
+            if event == "UNIT_AURA" then
+                CoAAT_TargetHeadbar.UpdateAuras()
+            else
+                CoAAT_TargetHeadbar.UpdateStats()
+            end
         end
     end)
 
@@ -197,6 +245,7 @@ function CoAAT_TargetHeadbar.UpdateTarget()
     end
 
     CoAAT_TargetHeadbar.UpdateStats()
+    CoAAT_TargetHeadbar.UpdateAuras()
 end
 
 local function FormatValue(val)
@@ -251,5 +300,43 @@ function CoAAT_TargetHeadbar.UpdateStats()
         _frame._mpBar:Show()
     else
         _frame._mpBar:Hide()
+    end
+end
+
+function CoAAT_TargetHeadbar.UpdateAuras()
+    if not _frame or not UnitExists("target") then return end
+
+    -- Update Buffs
+    for i = 1, 8 do
+        local name, _, icon, count = UnitBuff("target", i)
+        local frame = _frame._buffs[i]
+        if name and frame then
+            frame.tex:SetTexture(icon)
+            if count and count > 1 then
+                frame.count:SetText(count)
+            else
+                frame.count:SetText("")
+            end
+            frame:Show()
+        elseif frame then
+            frame:Hide()
+        end
+    end
+
+    -- Update Debuffs
+    for i = 1, 8 do
+        local name, _, icon, count = UnitDebuff("target", i)
+        local frame = _frame._debuffs[i]
+        if name and frame then
+            frame.tex:SetTexture(icon)
+            if count and count > 1 then
+                frame.count:SetText(count)
+            else
+                frame.count:SetText("")
+            end
+            frame:Show()
+        elseif frame then
+            frame:Hide()
+        end
     end
 end
