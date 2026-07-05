@@ -49,10 +49,10 @@ function CoAAT_TargetHeadbar.Build(parent)
 
     _model = model
 
-    -- Health bar (segmented style)
+    -- Health bar (segmented style, anchored directly to f to prevent model scaling inheritance)
     local hpBar = CreateFrame("StatusBar", nil, f)
     hpBar:SetSize(parent:GetWidth() - 68, 14)
-    hpBar:SetPoint("LEFT", model, "RIGHT", 14, 4)
+    hpBar:SetPoint("LEFT", f, "LEFT", 60, 4)
     hpBar:SetMinMaxValues(0, 100)
     hpBar:SetValue(100)
 

@@ -50,9 +50,9 @@ function CoAAT_PlayerCard.Build(parent)
 
     _model = model
 
-    -- Target Name
+    -- Target Name (anchored directly to f to prevent model scaling inheritance)
     local nameText = f:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-    nameText:SetPoint("TOPLEFT", model, "TOPRIGHT", 10, -4)
+    nameText:SetPoint("TOPLEFT", f, "LEFT", 68, 18)
     nameText:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE")
     nameText:SetTextColor(1, 0.85, 0, 1)
     _nameText = nameText
@@ -71,10 +71,10 @@ function CoAAT_PlayerCard.Build(parent)
     rankText:SetTextColor(0.9, 0.4, 1.0, 0.95)
     _rankText = rankText
 
-    -- Health Bar (Segmented style)
+    -- Health Bar (Segmented style, anchored directly to f)
     local hpBar = CreateFrame("StatusBar", nil, f)
     hpBar:SetSize(160, 12)
-    hpBar:SetPoint("TOPLEFT", model, "TOPRIGHT", 10, -40)
+    hpBar:SetPoint("TOPLEFT", f, "LEFT", 68, -12)
     hpBar:SetMinMaxValues(0, 100)
     hpBar:SetValue(100)
 
