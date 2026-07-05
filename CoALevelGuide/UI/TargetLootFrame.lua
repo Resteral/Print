@@ -4,19 +4,19 @@
 local _, addon = ...
 
 local TargetLootFrame = CreateFrame("Frame", "CoALevelGuideTargetLootFrame", UIParent)
-TargetLootFrame:SetSize(220, 150)
+TargetLootFrame:SetSize(240, 150)
 TargetLootFrame:SetPoint("TOPLEFT", TargetFrame, "BOTTOMRIGHT", -20, 20)
 TargetLootFrame:Hide() -- Hide by default
 
--- Background
+-- Background (sleek dark tint)
 local bg = TargetLootFrame:CreateTexture(nil, "BACKGROUND")
 bg:SetAllPoints()
-bg:SetTexture(0.04, 0.06, 0.12, 0.9)
+bg:SetTexture(0.02, 0.02, 0.05, 0.95)
 
 -- Border
 local function makeBorder()
     local t = TargetLootFrame:CreateTexture(nil, "OVERLAY")
-    t:SetTexture(0.0, 0.5, 0.9, 0.4)
+    t:SetTexture(0.0, 0.5, 0.9, 0.45)
     return t
 end
 local bTop = makeBorder(); bTop:SetPoint("TOPLEFT"); bTop:SetPoint("TOPRIGHT"); bTop:SetHeight(1.5)
@@ -27,19 +27,21 @@ local bRight = makeBorder(); bRight:SetPoint("TOPRIGHT"); bRight:SetPoint("BOTTO
 -- Title
 TargetLootFrame.title = TargetLootFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
 TargetLootFrame.title:SetPoint("TOPLEFT", TargetLootFrame, "TOPLEFT", 10, -5)
+TargetLootFrame.title:SetFont("Fonts\\FRIZQT__.TTF", 11, "OUTLINE")
 TargetLootFrame.title:SetText("Known Drops")
 
 -- Sample Size Indicator
 TargetLootFrame.sampleSize = TargetLootFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
 TargetLootFrame.sampleSize:SetPoint("TOPRIGHT", TargetLootFrame, "TOPRIGHT", -10, -7)
-TargetLootFrame.sampleSize:SetTextColor(0.5, 0.5, 0.5)
+TargetLootFrame.sampleSize:SetFont("Fonts\\FRIZQT__.TTF", 9, "OUTLINE")
+TargetLootFrame.sampleSize:SetTextColor(0.6, 0.6, 0.6)
 
 -- Container for drop items
 TargetLootFrame.itemFrames = {}
 
 local function CreateItemFrame(index)
     local frame = CreateFrame("Frame", nil, TargetLootFrame)
-    frame:SetSize(200, 24)
+    frame:SetSize(220, 24)
     if index == 1 then
         frame:SetPoint("TOPLEFT", TargetLootFrame, "TOPLEFT", 10, -30)
     else
@@ -52,6 +54,7 @@ local function CreateItemFrame(index)
     
     local text = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     text:SetPoint("LEFT", icon, "RIGHT", 5, 0)
+    text:SetFont("Fonts\\FRIZQT__.TTF", 9, "OUTLINE")
     text:SetJustifyH("LEFT")
 
     frame.icon = icon
@@ -59,7 +62,10 @@ local function CreateItemFrame(index)
     return frame
 end
 
+local currentTargetNPCID = nil
+
 function TargetLootFrame.Refresh(npcID)
+    currentTargetNPCID = npcID
     if not npcID or not CoALevelGuideLootDB then 
         TargetLootFrame:Hide()
         return 
@@ -119,9 +125,9 @@ function TargetLootFrame.Refresh(npcID)
             itemFrame.icon:SetTexture(itemTexture)
             itemFrame.text:SetText(itemLink .. " (" .. percentage .. "%)")
         else
-            -- Item not cached yet, show ID and standard icon
+            -- Item not cached yet, query and show fallback
             itemFrame.icon:SetTexture("Interface\\Icons\\INV_Misc_QuestionMark")
-            itemFrame.text:SetText("Item #" .. drop.id .. " (" .. percentage .. "%)")
+            itemFrame.text:SetText("Loading Link #" .. drop.id .. " (" .. percentage .. "%)")
         end
         
         itemFrame:Show()
@@ -130,6 +136,7 @@ end
 
 -- Event handling
 TargetLootFrame:RegisterEvent("PLAYER_TARGET_CHANGED")
+TargetLootFrame:RegisterEvent("GET_ITEM_INFO_RECEIVED")
 TargetLootFrame:SetScript("OnEvent", function(self, event, ...)
     if event == "PLAYER_TARGET_CHANGED" then
         if UnitExists("target") and not UnitIsPlayer("target") then
@@ -143,6 +150,10 @@ TargetLootFrame:SetScript("OnEvent", function(self, event, ...)
             end
         else
             TargetLootFrame:Hide()
+        end
+    elseif event == "GET_ITEM_INFO_RECEIVED" then
+        if TargetLootFrame:IsShown() and currentTargetNPCID then
+            TargetLootFrame.Refresh(currentTargetNPCID)
         end
     end
 end)
