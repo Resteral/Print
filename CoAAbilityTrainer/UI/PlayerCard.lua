@@ -35,7 +35,8 @@ end
 
 function CoAAT_PlayerCard.Build(parent)
     local f = CreateFrame("Frame", nil, parent)
-    f:SetAllPoints(parent)
+    f:SetSize(400, 68)
+    f:SetPoint("TOPLEFT", parent, "TOPLEFT", 0, 0)
 
     -- Glassmorphic Card BG with horizontal fade out (near transparent to prevent box lines)
     local bg = f:CreateTexture(nil, "BACKGROUND")
@@ -178,7 +179,7 @@ function CoAAT_PlayerCard.Build(parent)
     -- PvP Stats Block (Right side of card)
     local pvpStatsText = f:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     pvpStatsText:SetPoint("TOPRIGHT", f, "TOPRIGHT", -10, -8)
-    pvpStatsText:SetWidth(120)
+    pvpStatsText:SetWidth(180)
     pvpStatsText:SetJustifyH("RIGHT")
     pvpStatsText:SetFont("Fonts\\FRIZQT__.TTF", 9, "OUTLINE")
     pvpStatsText:SetTextColor(0.8, 0.8, 0.8, 0.95)
@@ -302,11 +303,34 @@ function CoAAT_PlayerCard.UpdateTarget()
     local factionColor = (faction == "Alliance") and "|cff3377ffAlliance|r" or "|cffff3333Horde|r"
     if faction == "Neutral" then factionColor = "|cffaaaaaaNeutral|r" end
 
+    -- Strategy lookup by WotLK base class mapping
+    local classStrategy = "Kite & interrupt casts"
+    if classFilename == "WARRIOR" then
+        classStrategy = "Runemaster: Kite out of rune circles"
+    elseif classFilename == "DEATHKNIGHT" then
+        classStrategy = "Necro: Kill pets, focus caster"
+    elseif classFilename == "SHAMAN" then
+        classStrategy = "Primalist: Destroy Wildgrowth totems"
+    elseif classFilename == "ROGUE" then
+        classStrategy = "Venomancer: Cleanse toxic poisons"
+    elseif classFilename == "MAGE" then
+        classStrategy = "Pyromancer: Dispel combustion dots"
+    elseif classFilename == "PALADIN" then
+        classStrategy = "Sunbreaker: Watch for divine bubble"
+    elseif classFilename == "DRUID" then
+        classStrategy = "Chronomancer: Stop acceleration casts"
+    elseif classFilename == "WARLOCK" then
+        classStrategy = "Felsworn: Disarm; watch felfury burst"
+    elseif classFilename == "HUNTER" then
+        classStrategy = "Ranger: Close gap; avoid frost traps"
+    elseif classFilename == "PRIEST" then
+        classStrategy = "Cultist: Dispel shadow void dots"
+    end
+
     _pvpStatsText:SetText(
-        "Faction: " .. factionColor .. "\n" ..
-        "Resilience: |cff00ffaa" .. resilienceEstimate .. "|r\n" ..
-        "PvP Gear: |cffcc44ffStage 2|r\n" ..
-        "Arena Rating: |cffffcc001550|r"
+        "Resil: |cff00ffaa" .. resilienceEstimate .. "|r  Faction: " .. factionColor .. "\n" ..
+        "Arena: |cffffcc001550|r  Gear: |cffcc44ffStage 2|r\n" ..
+        "|cffffcc00Strat:|r " .. classStrategy
     )
 
     CoAAT_PlayerCard.UpdateStats()

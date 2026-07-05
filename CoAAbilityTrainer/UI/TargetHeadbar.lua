@@ -33,7 +33,8 @@ end
 
 function CoAAT_TargetHeadbar.Build(parent)
     local f = CreateFrame("Frame", nil, parent)
-    f:SetAllPoints(parent)
+    f:SetSize(400, 44)
+    f:SetPoint("TOPLEFT", parent, "TOPLEFT", 0, 0)
 
     -- Glassmorphic BG with horizontal fade out (near transparent to prevent box lines)
     local bg = f:CreateTexture(nil, "BACKGROUND")
