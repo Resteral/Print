@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { MessageCircle, X, Send, User, Mail, ShieldQuestion, HelpCircle } from 'lucide-react';
-import { createSupportTicket, sendSupportMessage, fetchSupportMessages } from '../support/actions';
+import { createSupportTicket, sendSupportMessage, fetchSupportMessages } from '../../dashboard/support/actions';
 
 interface Message {
   id?: string;
