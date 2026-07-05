@@ -16,10 +16,13 @@ function CoAAT_TargetHeadbar.Build(parent)
     local f = CreateFrame("Frame", nil, parent)
     f:SetAllPoints(parent)
 
-    -- Glassmorphic BG
+    -- Glassmorphic BG with horizontal fade out
     local bg = f:CreateTexture(nil, "BACKGROUND")
     bg:SetAllPoints()
     bg:SetTexture(0.03, 0.05, 0.12, 0.88)
+    if bg.SetGradientAlpha then
+        bg:SetGradientAlpha("HORIZONTAL", 0.03, 0.05, 0.12, 0.88, 0.03, 0.05, 0.12, 0.0)
+    end
 
     -- Accent side border (Left side)
     local border = f:CreateTexture(nil, "OVERLAY")
@@ -30,31 +33,37 @@ function CoAAT_TargetHeadbar.Build(parent)
 
     -- 3D Model frame
     local model = CreateFrame("PlayerModel", nil, f)
-    model:SetSize(40, 40)
-    model:SetPoint("LEFT", f, "LEFT", 4, 0)
+    model:SetSize(36, 36)
+    model:SetPoint("LEFT", f, "LEFT", 10, 0)
     
     -- Model background border
     local mb = model:CreateTexture(nil, "BACKGROUND")
     mb:SetAllPoints()
-    mb:SetTexture(0.04, 0.08, 0.18, 0.6)
+    mb:SetTexture(0.04, 0.08, 0.18, 0.4)
+
+    -- Circular bezel ring overlay
+    local ring = f:CreateTexture(nil, "OVERLAY")
+    ring:SetSize(54, 54)
+    ring:SetPoint("CENTER", model, "CENTER", 0, 0)
+    ring:SetTexture("Interface\\Minimap\\MiniMap-TrackingBorder")
 
     _model = model
 
     -- Health bar (segmented style)
     local hpBar = CreateFrame("StatusBar", nil, f)
-    hpBar:SetSize(parent:GetWidth() - 60, 16)
-    hpBar:SetPoint("LEFT", model, "RIGHT", 8, 4)
+    hpBar:SetSize(parent:GetWidth() - 68, 14)
+    hpBar:SetPoint("LEFT", model, "RIGHT", 14, 4)
     hpBar:SetMinMaxValues(0, 100)
     hpBar:SetValue(100)
 
     local hpTex = hpBar:CreateTexture(nil, "ARTWORK")
-    hpTex:SetTexture("Interface\\TargetingFrame\\UI-TargetingFrame-BarFill")
+    hpTex:SetTexture("Interface\\ChatFrame\\ChatFrameBackground") -- premium flat texture
     hpBar:SetStatusBarTexture(hpTex)
     hpBar:SetStatusBarColor(0.2, 0.8, 0.4, 0.85)
 
     local hpBG = hpBar:CreateTexture(nil, "BACKGROUND")
     hpBG:SetAllPoints()
-    hpBG:SetTexture(0.04, 0.04, 0.08, 0.95)
+    hpBG:SetTexture(0.04, 0.04, 0.08, 0.6)
 
     _healthBar = hpBar
 
@@ -79,19 +88,19 @@ function CoAAT_TargetHeadbar.Build(parent)
 
     -- Resource bar (Mana/Energy/Rage) below HP bar
     local mpBar = CreateFrame("StatusBar", nil, f)
-    mpBar:SetSize(parent:GetWidth() - 60, 6)
-    mpBar:SetPoint("TOPLEFT", hpBar, "BOTTOMLEFT", 0, -2)
+    mpBar:SetSize(parent:GetWidth() - 68, 5)
+    mpBar:SetPoint("TOPLEFT", hpBar, "BOTTOMLEFT", 0, -3)
     mpBar:SetMinMaxValues(0, 100)
     mpBar:SetValue(100)
 
     local mpTex = mpBar:CreateTexture(nil, "ARTWORK")
-    mpTex:SetTexture("Interface\\TargetingFrame\\UI-TargetingFrame-BarFill")
+    mpTex:SetTexture("Interface\\ChatFrame\\ChatFrameBackground")
     mpBar:SetStatusBarTexture(mpTex)
     mpBar:SetStatusBarColor(0.2, 0.5, 1.0, 0.8)
 
     local mpBG = mpBar:CreateTexture(nil, "BACKGROUND")
     mpBG:SetAllPoints()
-    mpBG:SetTexture(0.04, 0.04, 0.08, 0.95)
+    mpBG:SetTexture(0.04, 0.04, 0.08, 0.6)
 
     f._mpBar = mpBar
 

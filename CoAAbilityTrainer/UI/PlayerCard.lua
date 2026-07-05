@@ -18,10 +18,13 @@ function CoAAT_PlayerCard.Build(parent)
     local f = CreateFrame("Frame", nil, parent)
     f:SetAllPoints(parent)
 
-    -- Glassmorphic Card BG
+    -- Glassmorphic Card BG with horizontal fade out
     local bg = f:CreateTexture(nil, "BACKGROUND")
     bg:SetAllPoints()
     bg:SetTexture(0.03, 0.05, 0.12, 0.88)
+    if bg.SetGradientAlpha then
+        bg:SetGradientAlpha("HORIZONTAL", 0.03, 0.05, 0.12, 0.88, 0.03, 0.05, 0.12, 0.0)
+    end
 
     -- Accent side border
     local border = f:CreateTexture(nil, "OVERLAY")
@@ -32,12 +35,18 @@ function CoAAT_PlayerCard.Build(parent)
 
     -- 3D Model frame (larger 3D player portrait)
     local model = CreateFrame("PlayerModel", nil, f)
-    model:SetSize(54, 54)
-    model:SetPoint("LEFT", f, "LEFT", 10, 0)
+    model:SetSize(46, 46)
+    model:SetPoint("LEFT", f, "LEFT", 12, 0)
     
     local mb = model:CreateTexture(nil, "BACKGROUND")
     mb:SetAllPoints()
-    mb:SetTexture(0, 0, 0, 0.4)
+    mb:SetTexture(0, 0, 0, 0.3)
+
+    -- Circular bezel ring overlay
+    local ring = f:CreateTexture(nil, "OVERLAY")
+    ring:SetSize(66, 66)
+    ring:SetPoint("CENTER", model, "CENTER", 0, 0)
+    ring:SetTexture("Interface\\Minimap\\MiniMap-TrackingBorder")
 
     _model = model
 
@@ -70,13 +79,13 @@ function CoAAT_PlayerCard.Build(parent)
     hpBar:SetValue(100)
 
     local hpTex = hpBar:CreateTexture(nil, "ARTWORK")
-    hpTex:SetTexture("Interface\\TargetingFrame\\UI-TargetingFrame-BarFill")
+    hpTex:SetTexture("Interface\\ChatFrame\\ChatFrameBackground")
     hpBar:SetStatusBarTexture(hpTex)
     hpBar:SetStatusBarColor(0.2, 0.8, 0.4, 0.85)
 
     local hpBG = hpBar:CreateTexture(nil, "BACKGROUND")
     hpBG:SetAllPoints()
-    hpBG:SetTexture(0.04, 0.04, 0.08, 0.95)
+    hpBG:SetTexture(0.04, 0.04, 0.08, 0.6)
 
     _healthBar = hpBar
 
@@ -94,7 +103,7 @@ function CoAAT_PlayerCard.Build(parent)
     mpBar:SetValue(100)
 
     local mpTex = mpBar:CreateTexture(nil, "ARTWORK")
-    mpTex:SetTexture("Interface\\TargetingFrame\\UI-TargetingFrame-BarFill")
+    mpTex:SetTexture("Interface\\ChatFrame\\ChatFrameBackground")
     mpBar:SetStatusBarTexture(mpTex)
     mpBar:SetStatusBarColor(0.2, 0.5, 1.0, 0.8)
 

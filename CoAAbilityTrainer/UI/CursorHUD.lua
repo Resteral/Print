@@ -25,7 +25,7 @@ function CoAAT_CursorHUD.Build(parent)
     hp:SetValue(100)
 
     local hpTex = hp:CreateTexture(nil, "ARTWORK")
-    hpTex:SetTexture("Interface\\TargetingFrame\\UI-TargetingFrame-BarFill")
+    hpTex:SetTexture("Interface\\ChatFrame\\ChatFrameBackground")
     hp:SetStatusBarTexture(hpTex)
     hp:SetStatusBarColor(0.2, 0.8, 0.4, 0.9)
 
@@ -44,7 +44,7 @@ function CoAAT_CursorHUD.Build(parent)
     mp:SetValue(100)
 
     local mpTex = mp:CreateTexture(nil, "ARTWORK")
-    mpTex:SetTexture("Interface\\TargetingFrame\\UI-TargetingFrame-BarFill")
+    mpTex:SetTexture("Interface\\ChatFrame\\ChatFrameBackground")
     mp:SetStatusBarTexture(mpTex)
     mp:SetStatusBarColor(0.2, 0.5, 1.0, 0.9)
 
@@ -63,7 +63,7 @@ function CoAAT_CursorHUD.Build(parent)
     cast:Hide()
 
     local castTex = cast:CreateTexture(nil, "ARTWORK")
-    castTex:SetTexture("Interface\\TargetingFrame\\UI-TargetingFrame-BarFill")
+    castTex:SetTexture("Interface\\ChatFrame\\ChatFrameBackground")
     cast:SetStatusBarTexture(castTex)
     cast:SetStatusBarColor(1.0, 0.7, 0.0, 0.95)
 
