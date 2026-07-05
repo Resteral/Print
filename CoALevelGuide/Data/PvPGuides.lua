@@ -85,6 +85,18 @@ CoALevelGuide_PvPGuides = {
                 desc = "Activates shroud, then casts Anti-Magic Shield on yourself to absorb spells.",
                 body = "#showtooltip Anti-Magic Shield\n/cast Shroud of Shadows\n/cast Anti-Magic Shield"
             }
+        },
+        runemaster = {
+            {
+                name = "Runic Rotation Chain",
+                desc = "Automates building Rune Charges with Rune Strike and detonating them at full stacks.",
+                body = "/castsequence reset=combat/target Rune Strike, Rune Strike, Rune Strike, Runic Detonation"
+            },
+            {
+                name = "Defensive Warding Ward",
+                desc = "Casts Warding Shield and drops a defensive Rune Circle to mitigate incoming spell burst.",
+                body = "#showtooltip Warding Shield\n/cast Warding Shield\n/cast Rune Circle"
+            }
         }
     },
     tips = {

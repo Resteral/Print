@@ -56,6 +56,13 @@ local classThemes = {
         textHex = "b300b3",
         bg = { r=0.05, g=0.02, b=0.08, a=0.97 }
     },
+    runemaster = {
+        border = { r=0.9,  g=0.5,  b=0.1,  a=0.20 },
+        accent = { r=1.0,  g=0.6,  b=0.0,  a=1.0  },
+        logo   = "|cffff9900⚔ Runemaster|r |cffFFD700Guide|r",
+        textHex = "ff9900",
+        bg = { r=0.07, g=0.04, b=0.02, a=0.97 }
+    },
     obsidian = {
         border = { r=0.9,  g=0.7,  b=0.2,  a=0.20 },
         accent = { r=1.0,  g=0.8,  b=0.1,  a=1.0  },
@@ -237,11 +244,16 @@ function CoALevelGuide_MainFrame.Create()
         info.value = "reaper"
         info.checked = (CoALevelGuideDB.activeClass == "reaper")
         UIDropDownMenu_AddButton(info)
+
+        info.text = "|cffff9900Runemaster|r"
+        info.value = "runemaster"
+        info.checked = (CoALevelGuideDB.activeClass == "runemaster")
+        UIDropDownMenu_AddButton(info)
     end)
 
     local activeVal = CoALevelGuideDB.activeClass or "auto"
     UIDropDownMenu_SetSelectedValue(classDropdown, activeVal)
-    local activeTexts = { auto = "Auto-Detect", felsworn = "Felsworn", necromancer = "Necromancer", reaper = "Reaper" }
+    local activeTexts = { auto = "Auto-Detect", felsworn = "Felsworn", necromancer = "Necromancer", reaper = "Reaper", runemaster = "Runemaster" }
     UIDropDownMenu_SetText(classDropdown, activeTexts[activeVal])
     f._headerDropdown = classDropdown
 
@@ -1648,7 +1660,7 @@ function CoALevelGuide_MainFrame.BuildTalentsPanel(parent)
             notice:SetWidth(W - 12)
             notice:SetJustifyH("LEFT")
             notice:SetFont("Fonts\\FRIZQT__.TTF", 10, "OUTLINE")
-            notice:SetText("|cffaaaaaaCustom spec builds are defined for Necromancer, Felsworn, and Reaper. For other classes, you can use the Custom Import tool below.|r")
+            notice:SetText("|cffaaaaaaCustom spec builds are defined for Necromancer, Felsworn, Reaper, and Runemaster. For other classes, you can use the Custom Import tool below.|r")
             yOff = yOff - 36
         end
 
