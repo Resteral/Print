@@ -160,12 +160,26 @@ function CoAAT_CombatHUD.Build()
             end
         end
 
+        if hideBorder then
+            self:EnableMouse(false)
+            if CoAAT_AuraDisplay and CoAAT_AuraDisplay.SetMouseEnabled then
+                CoAAT_AuraDisplay.SetMouseEnabled(false)
+            end
+        else
+            self:EnableMouse(true)
+            if CoAAT_AuraDisplay and CoAAT_AuraDisplay.SetMouseEnabled then
+                CoAAT_AuraDisplay.SetMouseEnabled(true)
+            end
+        end
+
         for _, section in ipairs({ self._targetSection, self._playerCardSection, self._rotSection, self._auraSection, self._resSection, self._castSection, self._cdSection }) do
-            if section and section._dragBorder then
+            if section then
                 if hideBorder then
-                    section._dragBorder:Hide()
+                    if section._dragBorder then section._dragBorder:Hide() end
+                    section:EnableMouse(false)
                 else
-                    section._dragBorder:Show()
+                    if section._dragBorder then section._dragBorder:Show() end
+                    section:EnableMouse(true)
                 end
             end
         end

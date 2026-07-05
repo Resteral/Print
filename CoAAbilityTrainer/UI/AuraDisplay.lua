@@ -293,3 +293,10 @@ function CoAAT_AuraDisplay.AnimTick(dt)
         end
     end
 end
+
+function CoAAT_AuraDisplay.SetMouseEnabled(enabled)
+    if not auraIcons then return end
+    for _, ic in ipairs(auraIcons) do
+        ic:EnableMouse(enabled)
+    end
+end
