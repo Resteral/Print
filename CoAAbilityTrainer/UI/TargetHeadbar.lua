@@ -167,6 +167,7 @@ function CoAAT_TargetHeadbar.Build(parent)
     ring:SetSize(54, 54)
     ring:SetPoint("CENTER", model, "CENTER", 0, 0)
     ring:SetTexture("Interface\\Minimap\\MiniMap-TrackingBorder")
+    f._ring = ring
 
     _model = model
 
@@ -445,6 +446,9 @@ function CoAAT_TargetHeadbar.UpdateTarget()
         _nameText:SetText(string.format("%s (Lvl %s)", name, level))
     end
     _frame._border:SetTexture(borderR, borderG, borderB, 0.8)
+    if _frame._ring then
+        _frame._ring:SetVertexColor(borderR, borderG, borderB, 0.95)
+    end
 
     -- Set Classification
     local classif = UnitClassification("target")

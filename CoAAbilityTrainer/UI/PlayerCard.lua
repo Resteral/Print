@@ -168,6 +168,7 @@ function CoAAT_PlayerCard.Build(parent)
     ring:SetSize(66, 66)
     ring:SetPoint("CENTER", model, "CENTER", 0, 0)
     ring:SetTexture("Interface\\Minimap\\MiniMap-TrackingBorder")
+    f._ring = ring
 
     _model = model
 
@@ -463,11 +464,14 @@ function CoAAT_PlayerCard.UpdateTarget()
     _nameText:SetText(string.format("%s |c%s[%s]|r", name, classColorHex, race))
 
     -- Set border color matching player class
+    local r, g, b = 0.77, 0.27, 1.0
     if RAID_CLASS_COLORS and RAID_CLASS_COLORS[classFilename] then
         local c = RAID_CLASS_COLORS[classFilename]
-        _frame._border:SetTexture(c.r, c.g, c.b, 0.8)
-    else
-        _frame._border:SetTexture(0.77, 0.27, 1.0, 0.8)
+        r, g, b = c.r, c.g, c.b
+    end
+    _frame._border:SetTexture(r, g, b, 0.8)
+    if _frame._ring then
+        _frame._ring:SetVertexColor(r, g, b, 0.95)
     end
 
     -- Set Guild info
