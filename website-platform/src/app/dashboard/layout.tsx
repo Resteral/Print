@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Globe, MessageSquare, Megaphone, Settings, Link as LinkIcon, ShoppingCart, Bot, Inbox, Compass, Truck, LifeBuoy, Swords } from "lucide-react";
+import { LayoutDashboard, Globe, MessageSquare, Megaphone, Settings, Link as LinkIcon, ShoppingCart, Bot, Inbox, Compass, Truck, LifeBuoy } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -26,7 +26,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <NavLink href="/dashboard/support" icon={<LifeBuoy size={18} />} label="Support Inbox" />
           <NavLink href="/dashboard/chatbot" icon={<MessageSquare size={18} />} label="AI Chatbot" />
           <NavLink href="/dashboard/discord" icon={<Compass size={18} />} label="Discord Gen" />
-          <NavLink href="/dashboard/coa" icon={<Swords size={18} />} label="CoA Addon Helper" />
           <NavLink href="/dashboard/integrations" icon={<LinkIcon size={18} />} label="Integrations" />
           <NavLink href="/devspace" icon={<Megaphone size={18} />} label="Marketing & Ads" />
           
