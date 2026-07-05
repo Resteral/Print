@@ -34,3 +34,23 @@ export async function updateCustomDomain(siteId: string, domain: string) {
   revalidatePath('/dashboard/sites');
   return { success: true };
 }
+
+export async function toggleVerificationFlags(siteId: string, flag: 'secure' | 'human', value: boolean) {
+  const supabase = await createClient();
+  
+  const payload = flag === 'secure' 
+    ? { is_verified_secure: value }
+    : { is_verified_human_review: value };
+
+  const { error } = await supabase
+    .from('sites')
+    .update(payload)
+    .eq('id', siteId);
+    
+  if (error) {
+    return { success: false, error: error.message };
+  }
+  
+  revalidatePath('/dashboard/sites');
+  return { success: true };
+}

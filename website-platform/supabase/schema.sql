@@ -355,3 +355,7 @@ ALTER TABLE public.referrals ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Anyone can insert referrals" ON public.referrals FOR INSERT WITH CHECK (true);
 CREATE POLICY "Anyone can select referrals" ON public.referrals FOR SELECT USING (true);
+
+-- PHASE 18: SECURITY & AI TRUST BADGES
+ALTER TABLE public.sites ADD COLUMN IF NOT EXISTS is_verified_secure BOOLEAN DEFAULT true;
+ALTER TABLE public.sites ADD COLUMN IF NOT EXISTS is_verified_human_review BOOLEAN DEFAULT false;

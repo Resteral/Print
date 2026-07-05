@@ -16,7 +16,7 @@ export async function GET(
   // Find the site by custom_domain
   const { data: site, error } = await supabase
     .from('sites')
-    .select('id, user_id, html_content, status')
+    .select('id, user_id, html_content, status, is_verified_secure, is_verified_human_review')
     .eq('custom_domain', hostname)
     .single();
 
@@ -62,11 +62,27 @@ export async function GET(
       })();
     </script>
 
-    <!-- Powered by Resolve.bet Referral Badge -->
-    <a href="https://resolve.bet/signup?ref=${site.user_id}" target="_blank" style="position: fixed; bottom: 20px; left: 20px; z-index: 99999; background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(255, 255, 255, 0.15); padding: 10px 14px; border-radius: 12px; font-family: sans-serif; font-size: 11px; font-weight: 600; color: #fff; text-decoration: none; display: flex; align-items: center; gap: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); backdrop-filter: blur(8px); transition: transform 0.2s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-      <span style="display: inline-block; width: 8px; height: 8px; background: #6366f1; border-radius: 50%;"></span>
-      Powered by Resolve.bet
-    </a>
+    <!-- Powered by Resolve.bet Referral & Trust Badges -->
+    <div style="position: fixed; bottom: 20px; left: 20px; z-index: 99999; display: flex; flex-direction: column; gap: 8px; font-family: sans-serif; align-items: flex-start; pointer-events: auto;">
+      <a href="https://resolve.bet/signup?ref=${site.user_id}" target="_blank" style="background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(255, 255, 255, 0.15); padding: 9px 12px; border-radius: 12px; font-size: 11px; font-weight: 600; color: #fff; text-decoration: none; display: flex; align-items: center; gap: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); backdrop-filter: blur(8px); transition: transform 0.2s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+        <span style="display: inline-block; width: 8px; height: 8px; background: #6366f1; border-radius: 50%;"></span>
+        Powered by Resolve.bet
+      </a>
+      
+      ${site.is_verified_secure ? `
+      <div style="background: rgba(16, 185, 129, 0.95); border: 1px solid rgba(255, 255, 255, 0.1); padding: 7px 10px; border-radius: 8px; font-size: 9px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); text-transform: uppercase; letter-spacing: 0.5px; backdrop-filter: blur(8px);">
+        <svg style="width: 12px; height: 12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+        Verified Secure
+      </div>
+      ` : ''}
+
+      ${site.is_verified_human_review ? `
+      <div style="background: rgba(59, 130, 246, 0.95); border: 1px solid rgba(255, 255, 255, 0.1); padding: 7px 10px; border-radius: 8px; font-size: 9px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); text-transform: uppercase; letter-spacing: 0.5px; backdrop-filter: blur(8px);">
+        <svg style="width: 12px; height: 12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        Human Verified Copy
+      </div>
+      ` : ''}
+    </div>
   `;
   
   let finalHtml = site.html_content;
