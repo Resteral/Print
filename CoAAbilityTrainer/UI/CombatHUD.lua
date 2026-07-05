@@ -38,32 +38,20 @@ function CoAAT_CombatHUD.Build()
     -- Transparent backdrop (Only visible when out of combat for dragging)
     local dragBG = hud:CreateTexture(nil, "BACKGROUND")
     dragBG:SetAllPoints()
-    dragBG:SetTexture(0, 0, 0, 0.05) -- extremely subtle out of combat tint
-    dragBG:SetAlpha(1)
+    dragBG:SetTexture(0, 0, 0, 0) -- Completely transparent background for a free floating look
+    dragBG:SetAlpha(0)
     hud._dragBG = dragBG
 
-    -- Subtle 1.5px border lines (only shown out of combat)
+    -- Transparent container frame for dragging
     local border = CreateFrame("Frame", nil, hud)
     border:SetAllPoints()
     hud._borderFrame = border
-
-    local function drawBorder(point1, point2, w, h)
-        local t = border:CreateTexture(nil, "OVERLAY")
-        t:SetTexture(0.0, 0.5, 0.9, 0.4)
-        t:SetPoint(point1)
-        t:SetPoint(point2)
-        if w then t:SetWidth(w) else t:SetHeight(h) end
-    end
-    drawBorder("TOPLEFT", "TOPRIGHT", nil, 1.5)
-    drawBorder("BOTTOMLEFT", "BOTTOMRIGHT", nil, 1.5)
-    drawBorder("TOPLEFT", "BOTTOMLEFT", 1.5, nil)
-    drawBorder("TOPRIGHT", "BOTTOMRIGHT", 1.5, nil)
 
     -- Drag instructions (hidden in combat)
     local dragHint = hud:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     dragHint:SetPoint("TOP", hud, "TOP", 0, -5)
     dragHint:SetFont("Fonts\\FRIZQT__.TTF", 10, "OUTLINE")
-    dragHint:SetText("|cff00ccffCoA Ability Trainer|r\n|cffaaaaaaDrag to move. Disappears in combat.|r")
+    dragHint:SetText("|cff00ccff[ CoA Trainer - Drag to Move ]|r")
     hud._dragHint = dragHint
 
     local function MakeSectionDraggable(section, name, labelText)
@@ -71,31 +59,15 @@ function CoAAT_CombatHUD.Build()
         section:SetMovable(true)
         section:RegisterForDrag("LeftButton")
         
-        -- Section drag border & label
+        -- Section floating drag label
         local border = CreateFrame("Frame", nil, section)
         border:SetAllPoints()
         section._dragBorder = border
 
-        local bg = border:CreateTexture(nil, "BACKGROUND")
-        bg:SetAllPoints()
-        bg:SetTexture(0.0, 0.4, 0.8, 0.08)
-
-        local function drawBorderLine(point1, point2, w, h)
-            local t = border:CreateTexture(nil, "OVERLAY")
-            t:SetTexture(0.0, 0.5, 1.0, 0.4)
-            t:SetPoint(point1)
-            t:SetPoint(point2)
-            if w then t:SetWidth(w) else t:SetHeight(h) end
-        end
-        drawBorderLine("TOPLEFT", "TOPRIGHT", nil, 1.2)
-        drawBorderLine("BOTTOMLEFT", "BOTTOMRIGHT", nil, 1.2)
-        drawBorderLine("TOPLEFT", "BOTTOMLEFT", 1.2, nil)
-        drawBorderLine("TOPRIGHT", "BOTTOMRIGHT", 1.2, nil)
-
         local lbl = border:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
         lbl:SetPoint("CENTER", border, "CENTER", 0, 0)
         lbl:SetFont("Fonts\\FRIZQT__.TTF", 9, "OUTLINE")
-        lbl:SetText("|cff00ccff" .. labelText .. "|r")
+        lbl:SetText("|cff00ccff[ Drag " .. labelText .. " ]|r")
 
         section:SetScript("OnDragStart", function(self)
             if not InCombatLockdown() then self:StartMoving() end

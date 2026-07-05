@@ -14,12 +14,12 @@ local CONTENT_Y_START = -(HEADER_H + TAB_H + 8)
 -- Color palette
 local C = {
     bg         = { r=0.04, g=0.06, b=0.12, a=0.97 },
-    border     = { r=0.0,  g=0.75, b=1.0,  a=0.8  },
+    border     = { r=0.0,  g=0.75, b=1.0,  a=0.20 },
     accent     = { r=0.0,  g=0.8,  b=1.0,  a=1.0  },
     gold       = { r=1.0,  g=0.84, b=0.0,  a=1.0  },
     tabactive  = { r=0.0,  g=0.6,  b=0.9,  a=0.9  },
-    tabinact   = { r=0.08, g=0.10, b=0.18, a=0.85 },
-    separator  = { r=0.0,  g=0.55, b=0.8,  a=0.5  },
+    tabinact   = { r=0.08, g=0.10, b=0.18, a=0.40 },
+    separator  = { r=0.0,  g=0.55, b=0.8,  a=0.15 },
     highlight  = { r=0.1,  g=0.2,  b=0.35, a=0.6  },
 }
 
@@ -29,28 +29,28 @@ local tabFrames = {}
 
 local classThemes = {
     default = {
-        border = { r=0.0,  g=0.75, b=1.0,  a=0.8  },
+        border = { r=0.0,  g=0.75, b=1.0,  a=0.20 },
         accent = { r=0.0,  g=0.8,  b=1.0,  a=1.0  },
         logo   = "|cff00ccff⚔ CoA|r |cffFFD700Lvl Guide|r",
         textHex = "00ccff",
         bg = { r=0.04, g=0.06, b=0.12, a=0.97 }
     },
     felsworn = {
-        border = { r=0.2,  g=0.9,  b=0.2,  a=0.85 },
+        border = { r=0.2,  g=0.9,  b=0.2,  a=0.25 },
         accent = { r=0.1,  g=1.0,  b=0.1,  a=1.0  },
         logo   = "|cff39e639⚔ Felsworn|r |cffFFD700Guide|r",
         textHex = "39e639",
         bg = { r=0.03, g=0.08, b=0.04, a=0.97 }
     },
     necromancer = {
-        border = { r=0.0,  g=0.8,  b=0.8,  a=0.85 },
+        border = { r=0.0,  g=0.8,  b=0.8,  a=0.25 },
         accent = { r=0.2,  g=0.9,  b=1.0,  a=1.0  },
         logo   = "|cff4dff4d⚔ Necro|r |cffFFD700Guide|r",
         textHex = "4dff4d",
         bg = { r=0.02, g=0.08, b=0.08, a=0.97 }
     },
     reaper = {
-        border = { r=0.7,  g=0.0,  b=0.8,  a=0.85 },
+        border = { r=0.7,  g=0.0,  b=0.8,  a=0.25 },
         accent = { r=0.8,  g=0.1,  b=1.0,  a=1.0  },
         logo   = "|cffb300b3⚔ Reaper|r |cffFFD700Guide|r",
         textHex = "b300b3",

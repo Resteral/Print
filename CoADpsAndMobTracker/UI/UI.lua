@@ -71,7 +71,7 @@ local function CreateMainFrame()
     local function makeLine(parent, w, h, p, rp, ox, oy)
         local l = parent:CreateTexture(nil, "OVERLAY")
         l:SetSize(w, h)
-        l:SetTexture(0.0, 0.6, 0.9, 0.5)
+        l:SetTexture(0.0, 0.6, 0.9, 0.20) -- Softened blue border
         l:SetPoint(p, parent, rp, ox, oy)
         return l
     end
@@ -177,7 +177,7 @@ local function CreateDetailFrame()
     local function makeLine(parent, w, h, p, rp, ox, oy)
         local l = parent:CreateTexture(nil, "OVERLAY")
         l:SetSize(w, h)
-        l:SetTexture(0.55, 0.0, 0.85, 0.6) -- purple detail border
+        l:SetTexture(0.55, 0.0, 0.85, 0.20) -- Softened purple detail border
         l:SetPoint(p, parent, rp, ox, oy)
         return l
     end
