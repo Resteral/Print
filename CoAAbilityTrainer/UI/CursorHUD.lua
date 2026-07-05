@@ -102,7 +102,7 @@ function CoAAT_CursorHUD.Build(parent)
         if unit ~= "player" then return end
 
         if event == "UNIT_SPELLCAST_START" then
-            local _, _, _, startTime, endTime = UnitCastingInfo("player")
+            local _, _, _, _, startTime, endTime = UnitCastingInfo("player")
             if startTime and endTime then
                 castStart = startTime / 1000
                 castEnd = endTime / 1000
@@ -112,7 +112,7 @@ function CoAAT_CursorHUD.Build(parent)
                 _castBar:Show()
             end
         elseif event == "UNIT_SPELLCAST_CHANNEL_START" then
-            local _, _, _, startTime, endTime = UnitChannelInfo("player")
+            local _, _, _, _, startTime, endTime = UnitChannelInfo("player")
             if startTime and endTime then
                 castStart = startTime / 1000
                 castEnd = endTime / 1000
@@ -128,13 +128,13 @@ function CoAAT_CursorHUD.Build(parent)
             isChanneling = false
             _castBar:Hide()
         elseif event == "UNIT_SPELLCAST_DELAYED" then
-            local _, _, _, startTime, endTime = UnitCastingInfo("player")
+            local _, _, _, _, startTime, endTime = UnitCastingInfo("player")
             if startTime and endTime then
                 castStart = startTime / 1000
                 castEnd = endTime / 1000
             end
         elseif event == "UNIT_SPELLCAST_CHANNEL_UPDATE" then
-            local _, _, _, startTime, endTime = UnitChannelInfo("player")
+            local _, _, _, _, startTime, endTime = UnitChannelInfo("player")
             if startTime and endTime then
                 castStart = startTime / 1000
                 castEnd = endTime / 1000
