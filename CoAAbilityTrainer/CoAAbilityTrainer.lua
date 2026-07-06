@@ -105,6 +105,10 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
         -- Init engine (restores saved class/spec)
         CoAAT_Engine.Init()
 
+        -- Auto-configure CVars so nameplates display correctly above mob models
+        SetCVar("nameplateShowEnemies", 1)
+        SetCVar("nameplateMotion", 1) -- Stack nameplates above heads instead of overlapping body/HUD
+
         -- First run: show welcome tutorial
         if CoAAT_DB.firstRun then
             CoAAT_DB.firstRun = false

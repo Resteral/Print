@@ -107,6 +107,52 @@ local function FindTargetNameplate()
     StyleAllNameplates()
 
     local kids = { WorldFrame:GetChildren() }
+    
+    -- Pass 1: Name matches AND target glow active (accurate target detection)
+    for _, frame in ipairs(kids) do
+        if frame:IsShown() and not frame:GetName() then
+            local nameMatches = false
+            local isTargetGlow = false
+            local regions = { frame:GetRegions() }
+            for _, region in ipairs(regions) do
+                local objType = region:GetObjectType()
+                if objType == "FontString" then
+                    if region:GetText() == targetName then
+                        nameMatches = true
+                    end
+                elseif objType == "Texture" then
+                    local tex = region:GetTexture()
+                    if tex and string.find(tex, "Nameplate%-Glow") then
+                        if region:IsShown() then
+                            isTargetGlow = true
+                        end
+                    end
+                end
+            end
+            if nameMatches and isTargetGlow then
+                return frame
+            end
+        end
+    end
+
+    -- Pass 2: Name matches AND alpha == 1.0 (WotLK target opacity)
+    for _, frame in ipairs(kids) do
+        if frame:IsShown() and not frame:GetName() then
+            local nameMatches = false
+            local regions = { frame:GetRegions() }
+            for _, region in ipairs(regions) do
+                if region:GetObjectType() == "FontString" and region:GetText() == targetName then
+                    nameMatches = true
+                    break
+                end
+            end
+            if nameMatches and frame:GetAlpha() == 1.0 then
+                return frame
+            end
+        end
+    end
+
+    -- Pass 3: Fallback first matching name
     for _, frame in ipairs(kids) do
         if frame:IsShown() and not frame:GetName() then
             local regions = { frame:GetRegions() }
