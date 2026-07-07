@@ -25,6 +25,7 @@ UI\CursorHUD.lua
 UI\MobInfoHUD.lua
 UI\EnemyTacticHUD.lua
 UI\TreasureHUD.lua
+UI\NameplateHUD.lua
 UI\CombatHUD.lua
 UI\TutorialPanel.lua
 UI\SettingsFrame.lua

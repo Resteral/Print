@@ -248,6 +248,18 @@ function CoAAT_SettingsFrame.Build()
         CoAAT_CombatHUD.RefreshLayout()
     end)
 
+    local npHudCB = CreateFrame("CheckButton", "CoAATNameplateHudCB", f, "UICheckButtonTemplate")
+    npHudCB:SetPoint("TOPLEFT", f, "TOPLEFT", 10, -258)
+    _G[npHudCB:GetName() .. "Text"]:SetText("|cffddddddNameplate HUD Overlay|r")
+    npHudCB:SetChecked(CoAAT_DB and CoAAT_DB.nameplateHUD ~= false)
+    npHudCB:SetScript("OnClick", function(self)
+        if self:GetChecked() then
+            CoAAT_NameplateHUD.Enable()
+        else
+            CoAAT_NameplateHUD.Disable()
+        end
+    end)
+
     -- Checkboxes: Col 2 (X = 190)
     local procAlertCB = CreateFrame("CheckButton", "CoAATShowProcAlertCB", f, "UICheckButtonTemplate")
     procAlertCB:SetPoint("TOPLEFT", f, "TOPLEFT", 190, -130)

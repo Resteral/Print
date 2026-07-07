@@ -136,6 +136,7 @@ function CoAAT_CombatHUD.Build()
     CoAAT_CastingBar.Build(castSection)
     CoAAT_CooldownTracker.Build(cdSection)
     CoAAT_ProcAlert.Build()  -- builds floating overlay
+    CoAAT_NameplateHUD.Build()  -- inject mini-HUD onto all nameplates
 
     hud:SetScript("OnUpdate", function(self, dt)
         CoAAT_Engine.OnUpdate(dt)
