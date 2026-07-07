@@ -98,6 +98,11 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
     elseif event == "PLAYER_LOGIN" and addonReady then
         -- Build all UI
         CoAAT_CombatHUD.Build()
+        CoAAT_MobInfoHUD.Build()
+        CoAAT_MobInfoHUD.RegisterEvents()
+        CoAAT_EnemyTacticHUD.Build()
+        CoAAT_EnemyTacticHUD.RegisterEvents()
+        CoAAT_TreasureHUD.Build()
         CoAAT_SettingsFrame.Build()
         CoAAT_TutorialPanel.Build()
         CoAAT_MinimapButton.Create()
@@ -179,6 +184,12 @@ SlashCmdList["COAAT"] = function(msg)
     elseif msg == "hud" then
         CoAAT_CombatHUD.Toggle()
 
+    elseif msg == "enemy" then
+        CoAAT_EnemyTacticHUD.Toggle()
+
+    elseif msg == "treasure" or msg == "pvp" then
+        CoAAT_TreasureHUD.Toggle()
+
     elseif msg:sub(1, 5) == "class" then
         -- /coaat class felsworn inquisitor
         local parts = {}
@@ -202,7 +213,9 @@ SlashCmdList["COAAT"] = function(msg)
     elseif msg == "help" then
         DEFAULT_CHAT_FRAME:AddMessage("|cffb048b5[CoAT]|r |cffFFD700Commands:|r")
         DEFAULT_CHAT_FRAME:AddMessage("  |cff00ccff/coaat|r              — Open settings")
-        DEFAULT_CHAT_FRAME:AddMessage("  |cff00ccff/coaat hud|r          — Toggle HUD")
+        DEFAULT_CHAT_FRAME:AddMessage("  |cff00ccff/coaat hud|r          — Toggle Combat HUD")
+        DEFAULT_CHAT_FRAME:AddMessage("  |cff00ccff/coaat enemy|r        — Toggle Enemy Tactic HUD")
+        DEFAULT_CHAT_FRAME:AddMessage("  |cff00ccff/coaat treasure|r     — Toggle PvP Treasure Hunt HUD")
         DEFAULT_CHAT_FRAME:AddMessage("  |cff00ccff/coaat aoe|r          — Toggle AoE/Single Target mode")
         DEFAULT_CHAT_FRAME:AddMessage("  |cff00ccff/coaat class <id>|r   — Set active class")
         DEFAULT_CHAT_FRAME:AddMessage("  |cff00ccff/coaattut|r           — Show tutorial")

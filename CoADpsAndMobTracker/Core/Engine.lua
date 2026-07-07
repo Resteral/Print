@@ -16,6 +16,11 @@ CoADpsAndMobTracker_Session = {
     players = {}
 }
 
+-- Boss Encounter Segments (last 10 boss fights saved)
+CoADpsAndMobTracker_Encounters = {}
+local _currentFight = nil   -- active fight segment being tracked
+local _instanceName = nil   -- current instance for auto-reset detection
+
 local inCombat = false
 local playerGUID = nil
 
@@ -63,6 +68,7 @@ engineFrame:RegisterEvent("PLAYER_LOGIN")
 engineFrame:RegisterEvent("PLAYER_REGEN_DISABLED")
 engineFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
 engineFrame:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+engineFrame:RegisterEvent("ZONE_CHANGED_NEW_AREA")
 
 engineFrame:SetScript("OnEvent", function(self, event, ...)
     if event == "ADDON_LOADED" then
@@ -86,10 +92,37 @@ engineFrame:SetScript("OnEvent", function(self, event, ...)
             CoADpsAndMobTracker_Session.startTime = GetTime()
         end
         CoADpsAndMobTracker_ActiveMobs = {}
+        -- Start a new encounter segment if inside a dungeon or raid
+        if not _currentFight then
+            local _, instanceType = IsInInstance()
+            if instanceType == "party" or instanceType == "raid" then
+                _currentFight = {
+                    name      = GetRealZoneText() or "Unknown Instance",
+                    startTime = GetTime(),
+                    bossName  = nil,
+                    endTime   = nil,
+                    duration  = nil,
+                    players   = {},
+                }
+            end
+        end
 
     elseif event == "PLAYER_REGEN_ENABLED" then
         inCombat = false
         CoADpsAndMobTracker_Session.endTime = GetTime()
+
+    elseif event == "ZONE_CHANGED_NEW_AREA" then
+        local _, instanceType = IsInInstance()
+        local newName = GetRealZoneText() or ""
+        if (instanceType == "party" or instanceType == "raid") and newName ~= _instanceName then
+            _instanceName = newName
+            _currentFight = nil
+            CoADpsAndMobTracker_Engine.ResetSession()
+            CoADpsAndMobTracker_Encounters = {}
+            DEFAULT_CHAT_FRAME:AddMessage("|cff00ccff[CoA Tracker]|r Entered " .. newName .. " — session auto-reset.")
+        elseif instanceType == "none" then
+            _instanceName = nil
+        end
 
     elseif event == "COMBAT_LOG_EVENT_UNFILTERED" then
         CoADpsAndMobTracker_Engine.OnCLEU(CombatLog_Object_IsA and select(1, ...) or ...)
@@ -348,6 +381,36 @@ function CoADpsAndMobTracker_Engine.OnCLEU(...)
         if amount > sLog.max then sLog.max = amount end
     end
 
+    -- Boss death detection → finalize encounter segment
+    if event == "UNIT_DIED" then
+        local isBoss = destFlags and (bit.band(destFlags, 0x08000000) ~= 0)
+        if isBoss and _currentFight then
+            _currentFight.endTime  = GetTime()
+            _currentFight.duration = _currentFight.endTime - _currentFight.startTime
+            _currentFight.bossName = destName or "Unknown Boss"
+            _currentFight.players  = {}
+            for guid, pData in pairs(CoADpsAndMobTracker_Session.players) do
+                _currentFight.players[guid] = {
+                    name    = pData.name,
+                    class   = pData.class,
+                    damage  = pData.damage,
+                    healing = pData.healing,
+                    tanked  = pData.tanked,
+                }
+            end
+            table.insert(CoADpsAndMobTracker_Encounters, _currentFight)
+            if #CoADpsAndMobTracker_Encounters > 10 then
+                table.remove(CoADpsAndMobTracker_Encounters, 1)
+            end
+            DEFAULT_CHAT_FRAME:AddMessage(
+                "|cffFFD700[CoA Tracker]|r ⚔ Boss killed: |cffFF8C00" ..
+                _currentFight.bossName .. "|r  (" ..
+                string.format("%.1fs", _currentFight.duration) .. ")"
+            )
+            _currentFight = nil
+        end
+    end
+
     -- Trigger UI updates
     if CoADpsAndMobTracker_UI and CoADpsAndMobTracker_UI.Refresh then
         CoADpsAndMobTracker_UI.Refresh()
@@ -360,13 +423,57 @@ end
 function CoADpsAndMobTracker_Engine.GetPlayerDPS(guid)
     local pLog = CoADpsAndMobTracker_Session.players[guid]
     if not pLog or pLog.damage == 0 then return 0 end
-
     local start = CoADpsAndMobTracker_Session.startTime
-    local stop = CoADpsAndMobTracker_Session.endTime or GetTime()
-    
+    local stop  = CoADpsAndMobTracker_Session.endTime or GetTime()
     if not start then return 0 end
     local duration = stop - start
-    if duration <= 0.5 then duration = 0.5 end -- avoid division by zero or extreme burst spike
-
+    if duration <= 0.5 then duration = 0.5 end
     return math.floor(pLog.damage / duration)
+end
+
+-- ─────────────────────────────────────────────
+-- Calculate Player HPS
+-- ─────────────────────────────────────────────
+function CoADpsAndMobTracker_Engine.GetPlayerHPS(guid)
+    local pLog = CoADpsAndMobTracker_Session.players[guid]
+    if not pLog or pLog.healing == 0 then return 0 end
+    local start = CoADpsAndMobTracker_Session.startTime
+    local stop  = CoADpsAndMobTracker_Session.endTime or GetTime()
+    if not start then return 0 end
+    local duration = stop - start
+    if duration <= 0.5 then duration = 0.5 end
+    return math.floor(pLog.healing / duration)
+end
+
+-- ─────────────────────────────────────────────
+-- Get current session duration in seconds
+-- ─────────────────────────────────────────────
+function CoADpsAndMobTracker_Engine.GetSessionDuration()
+    local start = CoADpsAndMobTracker_Session.startTime
+    if not start then return 0 end
+    return (CoADpsAndMobTracker_Session.endTime or GetTime()) - start
+end
+
+-- ─────────────────────────────────────────────
+-- Format seconds as M:SS string
+-- ─────────────────────────────────────────────
+function CoADpsAndMobTracker_Engine.FormatDuration(secs)
+    if not secs or secs <= 0 then return "0:00" end
+    local m = math.floor(secs / 60)
+    local s = math.floor(secs % 60)
+    return string.format("%d:%02d", m, s)
+end
+
+-- ─────────────────────────────────────────────
+-- Detect player role from combat data heuristics
+-- ─────────────────────────────────────────────
+function CoADpsAndMobTracker_Engine.GetPlayerRole(guid)
+    local pLog = CoADpsAndMobTracker_Session.players[guid]
+    if not pLog then return "DPS" end
+    if (pLog.tanked or 0) > (pLog.damage or 0) and (pLog.tanked or 0) > 0 then
+        return "TANK"
+    elseif (pLog.healing or 0) > (pLog.damage or 0) and (pLog.healing or 0) > 0 then
+        return "HEALER"
+    end
+    return "DPS"
 end

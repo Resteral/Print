@@ -1,6 +1,8 @@
 -- ============================================================
 -- CoADpsAndMobTracker - UI Frame
 -- Main Dashboard with tabs: DPS Meter, Mob Tracker
+-- Supports: segments (overall + last 10 boss fights), HPS,
+--           group share, fight timer, and clean layouts.
 -- ============================================================
 
 CoADpsAndMobTracker_UI = {}
@@ -9,6 +11,7 @@ local _frame = nil
 local _detailFrame = nil
 local activeTab = 1 -- 1 = DPS, 2 = Mobs
 local activeStat = "dps" -- "dps", "damage", "tanked", "healing"
+local activeSegment = "overall" -- "overall" or index (1-10) in CoADpsAndMobTracker_Encounters
 local selectedPlayerGUID = nil
 
 -- Standard WoW Class Colors
@@ -43,7 +46,7 @@ local ThreatColors = {
 -- ─────────────────────────────────────────────
 local function CreateMainFrame()
     local f = CreateFrame("Frame", "CoADpsAndMobTrackerFrame", UIParent)
-    f:SetSize(250, 260)
+    f:SetSize(280, 270)
     f:SetPoint("CENTER", UIParent, "CENTER", 150, 0)
     f:SetMovable(true)
     f:EnableMouse(true)
@@ -76,10 +79,10 @@ local function CreateMainFrame()
         l:SetPoint(p, parent, rp, ox, oy)
         return l
     end
-    makeLine(f, 250, 1, "TOPLEFT", "TOPLEFT", 0, 0)
-    makeLine(f, 250, 1, "BOTTOMLEFT", "BOTTOMLEFT", 0, 0)
-    makeLine(f, 1, 260, "TOPLEFT", "TOPLEFT", 0, 0)
-    makeLine(f, 1, 260, "TOPRIGHT", "TOPRIGHT", 0, 0)
+    makeLine(f, 280, 1, "TOPLEFT", "TOPLEFT", 0, 0)
+    makeLine(f, 280, 1, "BOTTOMLEFT", "BOTTOMLEFT", 0, 0)
+    makeLine(f, 1, 270, "TOPLEFT", "TOPLEFT", 0, 0)
+    makeLine(f, 1, 270, "TOPRIGHT", "TOPRIGHT", 0, 0)
 
     -- ── Tab Header Buttons ──
     local dpsTab = CreateFrame("Button", nil, f)
@@ -112,6 +115,13 @@ local function CreateMainFrame()
     end)
     f._mobTab = mobTab
 
+    -- Fight Timer Text
+    local timerText = f:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    timerText:SetPoint("TOPRIGHT", f, "TOPRIGHT", -76, -10)
+    timerText:SetFont("Fonts\\FRIZQT__.TTF", 9, "OUTLINE")
+    timerText:SetText("")
+    f._timerText = timerText
+
     -- Reset button ↺
     local resetBtn = CreateFrame("Button", nil, f)
     resetBtn:SetSize(18, 18)
@@ -123,6 +133,8 @@ local function CreateMainFrame()
     resetBtn:SetScript("OnClick", function()
         PlaySound(856)
         CoADpsAndMobTracker_Engine.ResetSession()
+        activeSegment = "overall"
+        CoADpsAndMobTracker_UI.Refresh()
     end)
 
     -- Report button 📢
@@ -153,14 +165,14 @@ local function CreateMainFrame()
 
     -- Scroll Child
     local child = CreateFrame("Frame", nil, scroll)
-    child:SetSize(218, 1) -- auto height
+    child:SetSize(248, 1) -- auto height
     scroll:SetScrollChild(child)
     f._scrollChild = child
 
     -- Stat Selector Dropdown
     local statDropdown = CreateFrame("Frame", "CoADpsAndMobTrackerStatDropdown", f, "UIDropDownMenuTemplate")
-    statDropdown:SetPoint("TOPLEFT", f, "TOPLEFT", -6, -28)
-    UIDropDownMenu_SetWidth(statDropdown, 140)
+    statDropdown:SetPoint("TOPLEFT", f, "TOPLEFT", -12, -28)
+    UIDropDownMenu_SetWidth(statDropdown, 105)
 
     local function StatDropdown_OnClick(self)
         UIDropDownMenu_SetSelectedValue(statDropdown, self.value)
@@ -172,25 +184,25 @@ local function CreateMainFrame()
     UIDropDownMenu_Initialize(statDropdown, function(self, level)
         local info = UIDropDownMenu_CreateInfo()
         
-        info.text = "⚔ DPS (Damage/Sec)"
+        info.text = "⚔ DPS"
         info.value = "dps"
         info.func = StatDropdown_OnClick
         info.checked = (activeStat == "dps")
         UIDropDownMenu_AddButton(info, level)
 
-        info.text = "💥 Overall Damage"
+        info.text = "💥 Damage"
         info.value = "damage"
         info.func = StatDropdown_OnClick
         info.checked = (activeStat == "damage")
         UIDropDownMenu_AddButton(info, level)
 
-        info.text = "🛡 Damage Tanked"
+        info.text = "🛡 Tanked"
         info.value = "tanked"
         info.func = StatDropdown_OnClick
         info.checked = (activeStat == "tanked")
         UIDropDownMenu_AddButton(info, level)
 
-        info.text = "💚 Damage Healed"
+        info.text = "💚 Healing"
         info.value = "healing"
         info.func = StatDropdown_OnClick
         info.checked = (activeStat == "healing")
@@ -198,8 +210,42 @@ local function CreateMainFrame()
     end)
 
     UIDropDownMenu_SetSelectedValue(statDropdown, "dps")
-    UIDropDownMenu_SetText(statDropdown, "⚔ DPS (Damage/Sec)")
+    UIDropDownMenu_SetText(statDropdown, "⚔ DPS")
     f._statDropdown = statDropdown
+
+    -- Segment Selector Dropdown
+    local segmentDropdown = CreateFrame("Frame", "CoADpsAndMobTrackerSegmentDropdown", f, "UIDropDownMenuTemplate")
+    segmentDropdown:SetPoint("LEFT", statDropdown, "RIGHT", -22, 0)
+    UIDropDownMenu_SetWidth(segmentDropdown, 105)
+
+    local function SegmentDropdown_OnClick(self)
+        UIDropDownMenu_SetSelectedValue(segmentDropdown, self.value)
+        activeSegment = self.value
+        UIDropDownMenu_SetText(segmentDropdown, self.text)
+        CoADpsAndMobTracker_UI.Refresh()
+    end
+
+    UIDropDownMenu_Initialize(segmentDropdown, function(self, level)
+        local info = UIDropDownMenu_CreateInfo()
+
+        info.text = "Overall Session"
+        info.value = "overall"
+        info.func = SegmentDropdown_OnClick
+        info.checked = (activeSegment == "overall")
+        UIDropDownMenu_AddButton(info, level)
+
+        for i, enc in ipairs(CoADpsAndMobTracker_Encounters) do
+            info.text = string.format("%d. %s", i, enc.bossName or "Boss")
+            info.value = i
+            info.func = SegmentDropdown_OnClick
+            info.checked = (activeSegment == i)
+            UIDropDownMenu_AddButton(info, level)
+        end
+    end)
+
+    UIDropDownMenu_SetSelectedValue(segmentDropdown, "overall")
+    UIDropDownMenu_SetText(segmentDropdown, "Overall Session")
+    f._segmentDropdown = segmentDropdown
 
     _frame = f
 end
@@ -261,11 +307,26 @@ end
 -- Report Top DPS to chat
 -- ─────────────────────────────────────────────
 function CoADpsAndMobTracker_UI.ReportDPS()
+    local playersSource = {}
+    local duration = 1
+
+    if activeSegment == "overall" then
+        playersSource = CoADpsAndMobTracker_Session.players
+        duration = CoADpsAndMobTracker_Engine.GetSessionDuration()
+    else
+        local enc = CoADpsAndMobTracker_Encounters[activeSegment]
+        if enc then
+            playersSource = enc.players
+            duration = enc.duration or 1
+        end
+    end
+    if duration <= 0.5 then duration = 0.5 end
+
     local list = {}
-    for guid, data in pairs(CoADpsAndMobTracker_Session.players) do
+    for guid, data in pairs(playersSource) do
         local value = 0
         if activeStat == "dps" then
-            value = CoADpsAndMobTracker_Engine.GetPlayerDPS(guid)
+            value = activeSegment == "overall" and CoADpsAndMobTracker_Engine.GetPlayerDPS(guid) or math.floor((data.damage or 0) / duration)
         elseif activeStat == "damage" then
             value = data.damage or 0
         elseif activeStat == "tanked" then
@@ -296,15 +357,8 @@ function CoADpsAndMobTracker_UI.ReportDPS()
         channel = "GUILD"
     end
 
-    local titleStr = "=== CoA Tracker (DPS) ==="
-    if activeStat == "damage" then
-        titleStr = "=== CoA Tracker (Damage) ==="
-    elseif activeStat == "tanked" then
-        titleStr = "=== CoA Tracker (Damage Tanked) ==="
-    elseif activeStat == "healing" then
-        titleStr = "=== CoA Tracker (Damage Healed) ==="
-    end
-
+    local segmentLabel = activeSegment == "overall" and "Overall" or ("Boss Segment " .. activeSegment)
+    local titleStr = string.format("=== CoA Tracker (%s - %s) ===", activeStat:upper(), segmentLabel)
     SendChatMessage(titleStr, channel)
     for i = 1, math.min(3, #list) do
         local r = list[i]
@@ -325,6 +379,27 @@ end
 local function RenderDetail(guid)
     if not _detailFrame then CreateDetailFrame() end
     local d = _detailFrame
+
+    if activeSegment ~= "overall" then
+        d._title:SetText("|cffFFD700Boss Segment Breakdown|r")
+        d:SetPoint("TOPLEFT", _frame, "TOPRIGHT", 6, 0)
+        d:Show()
+
+        local child = d._scrollChild
+        for _, childFrame in ipairs({ child:GetChildren() }) do
+            childFrame:Hide()
+            childFrame:SetParent(nil)
+        end
+
+        local notice = child:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+        notice:SetPoint("TOPLEFT", child, "TOPLEFT", 6, -20)
+        notice:SetSize(180, 0)
+        notice:SetJustifyH("LEFT")
+        notice:SetText("|cffaaaaaaSpell details are only saved for the live Overall Session to conserve memory.|r")
+        child:SetHeight(80)
+        return
+    end
+
     local pLog = CoADpsAndMobTracker_Session.players[guid]
     if not pLog then
         d:Hide()
@@ -343,7 +418,7 @@ local function RenderDetail(guid)
     end
 
     local sortedSpells = {}
-    for sName, data in pairs(pLog.spells) do
+    for sName, data in pairs(pLog.spells or {}) do
         table.insert(sortedSpells, { name = sName, damage = data.damage, data = data })
     end
     table.sort(sortedSpells, function(a,b) return a.damage > b.damage end)
@@ -410,11 +485,13 @@ function CoADpsAndMobTracker_UI.Refresh()
         _frame._dpsTab._text:SetText("|cff00ccff[⚔ DPS]|r")
         _frame._mobTab._text:SetText("|cffaaaaaa👾 Mobs|r")
         if _frame._statDropdown then _frame._statDropdown:Show() end
+        if _frame._segmentDropdown then _frame._segmentDropdown:Show() end
         _frame._scroll:SetPoint("TOPLEFT", _frame, "TOPLEFT", 6, -58)
     else
         _frame._dpsTab._text:SetText("|cffaaaaaa⚔ DPS|r")
         _frame._mobTab._text:SetText("|cff00ccff[👾 Mobs]|r")
         if _frame._statDropdown then _frame._statDropdown:Hide() end
+        if _frame._segmentDropdown then _frame._segmentDropdown:Hide() end
         _frame._scroll:SetPoint("TOPLEFT", _frame, "TOPLEFT", 6, -32)
     end
 
@@ -429,23 +506,84 @@ function CoADpsAndMobTracker_UI.Refresh()
 
     if activeTab == 1 then
         -- ── DPS MODE ──
+        local playersSource = {}
+        local duration = 0
+        local totalGroupDamage = 0
+        local totalGroupHealing = 0
+        local totalGroupTanked = 0
+
+        -- Load data based on selected segment
+        if activeSegment == "overall" then
+            playersSource = CoADpsAndMobTracker_Session.players
+            duration = CoADpsAndMobTracker_Engine.GetSessionDuration()
+            
+            -- Calculate group totals
+            for _, pData in pairs(playersSource) do
+                totalGroupDamage = totalGroupDamage + (pData.damage or 0)
+                totalGroupHealing = totalGroupHealing + (pData.healing or 0)
+                totalGroupTanked = totalGroupTanked + (pData.tanked or 0)
+            end
+        else
+            local enc = CoADpsAndMobTracker_Encounters[activeSegment]
+            if enc then
+                playersSource = enc.players
+                duration = enc.duration or 1
+                
+                -- Calculate group totals
+                for _, pData in pairs(playersSource) do
+                    totalGroupDamage = totalGroupDamage + (pData.damage or 0)
+                    totalGroupHealing = totalGroupHealing + (pData.healing or 0)
+                    totalGroupTanked = totalGroupTanked + (pData.tanked or 0)
+                end
+            end
+        end
+
+        if duration <= 0.5 then duration = 0.5 end
+
+        -- Update fight timer in header
+        local timerStr = CoADpsAndMobTracker_Engine.FormatDuration(duration)
+        _frame._timerText:SetText("|cffffd700⏱ " .. timerStr .. "|r")
+
+        -- Map Segment Dropdown text
+        if activeSegment == "overall" then
+            UIDropDownMenu_SetText(_frame._segmentDropdown, "Overall")
+        else
+            local enc = CoADpsAndMobTracker_Encounters[activeSegment]
+            if enc then
+                UIDropDownMenu_SetText(_frame._segmentDropdown, string.format("Seg %d: %s", activeSegment, enc.bossName or "Boss"))
+            end
+        end
+
         local list = {}
         local highestVal = 0
-        for guid, data in pairs(CoADpsAndMobTracker_Session.players) do
+        for guid, data in pairs(playersSource) do
             local value = 0
+            local rawDps = 0
+            local rawHps = 0
+
             if activeStat == "dps" then
-                value = CoADpsAndMobTracker_Engine.GetPlayerDPS(guid)
+                rawDps = activeSegment == "overall" and CoADpsAndMobTracker_Engine.GetPlayerDPS(guid) or math.floor((data.damage or 0) / duration)
+                value = rawDps
             elseif activeStat == "damage" then
                 value = data.damage or 0
             elseif activeStat == "tanked" then
                 value = data.tanked or 0
             elseif activeStat == "healing" then
-                value = data.healing or 0
+                rawHps = activeSegment == "overall" and CoADpsAndMobTracker_Engine.GetPlayerHPS(guid) or math.floor((data.healing or 0) / duration)
+                value = rawHps
             end
 
             -- Only include players who have actual data for this stat
-            if value > 0 then
-                table.insert(list, { guid = guid, name = data.name, val = value, class = data.class, rawData = data })
+            if value > 0 or (data.damage or 0) > 0 or (data.healing or 0) > 0 then
+                table.insert(list, {
+                    guid = guid,
+                    name = data.name,
+                    val = value,
+                    class = data.class,
+                    rawData = data,
+                    rawDps = activeSegment == "overall" and CoADpsAndMobTracker_Engine.GetPlayerDPS(guid) or math.floor((data.damage or 0) / duration),
+                    rawHps = activeSegment == "overall" and CoADpsAndMobTracker_Engine.GetPlayerHPS(guid) or math.floor((data.healing or 0) / duration)
+                })
                 if value > highestVal then highestVal = value end
             end
         end
@@ -453,7 +591,7 @@ function CoADpsAndMobTracker_UI.Refresh()
 
         for i, row in ipairs(list) do
             local rFrame = CreateFrame("Button", nil, child)
-            rFrame:SetSize(218, 22)
+            rFrame:SetSize(248, 22)
             rFrame:SetPoint("TOPLEFT", child, "TOPLEFT", 0, yOff)
 
             -- Progress bar row backdrop
@@ -467,7 +605,7 @@ function CoADpsAndMobTracker_UI.Refresh()
             fill:SetPoint("TOP", rFrame, "TOP")
             fill:SetPoint("BOTTOM", rFrame, "BOTTOM")
             local pct = highestVal > 0 and (row.val / highestVal) or 0
-            fill:SetWidth(218 * pct)
+            fill:SetWidth(248 * pct)
             local c = ClassColors[row.class] or { r=0.5, g=0.5, b=0.5 }
             fill:SetGradientAlpha("HORIZONTAL", c.r, c.g, c.b, 0.85, c.r * 0.4, c.g * 0.4, c.b * 0.4, 0.3)
 
@@ -477,17 +615,27 @@ function CoADpsAndMobTracker_UI.Refresh()
             nameStr:SetFont("Fonts\\FRIZQT__.TTF", 10, "OUTLINE")
             nameStr:SetText(string.format("%d. %s", i, row.name))
 
-            -- Label text: value
-            local formattedVal = CoADpsAndMobTracker_Engine.FormatNumber(row.val)
+            -- Label text: value (shows total, dps/hps, and % share of the group)
             local valueStr = rFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
             valueStr:SetPoint("RIGHT", rFrame, "RIGHT", -6, 0)
-            valueStr:SetFont("Fonts\\FRIZQT__.TTF", 10, "OUTLINE")
+            valueStr:SetFont("Fonts\\FRIZQT__.TTF", 9, "OUTLINE")
 
             if activeStat == "dps" then
-                local dmg = CoADpsAndMobTracker_Engine.FormatNumber(row.rawData.damage)
-                valueStr:SetText(string.format("%s (%d dps)", dmg, row.val))
-            else
-                valueStr:SetText(formattedVal)
+                local dmgShare = totalGroupDamage > 0 and ((row.rawData.damage or 0) / totalGroupDamage * 100) or 0
+                local dmgStr = CoADpsAndMobTracker_Engine.FormatNumber(row.rawData.damage)
+                valueStr:SetText(string.format("%s (%d dps, %.1f%%)", dmgStr, row.val, dmgShare))
+            elseif activeStat == "healing" then
+                local healShare = totalGroupHealing > 0 and ((row.rawData.healing or 0) / totalGroupHealing * 100) or 0
+                local healStr = CoADpsAndMobTracker_Engine.FormatNumber(row.rawData.healing)
+                valueStr:SetText(string.format("%s (%d hps, %.1f%%)", healStr, row.val, healShare))
+            elseif activeStat == "damage" then
+                local dmgShare = totalGroupDamage > 0 and ((row.rawData.damage or 0) / totalGroupDamage * 100) or 0
+                local dmgStr = CoADpsAndMobTracker_Engine.FormatNumber(row.val)
+                valueStr:SetText(string.format("%s (%.1f%%)", dmgStr, dmgShare))
+            elseif activeStat == "tanked" then
+                local tankShare = totalGroupTanked > 0 and ((row.rawData.tanked or 0) / totalGroupTanked * 100) or 0
+                local tankStr = CoADpsAndMobTracker_Engine.FormatNumber(row.val)
+                valueStr:SetText(string.format("%s (%.1f%%)", tankStr, tankShare))
             end
 
             -- Tooltip on hover
@@ -497,15 +645,28 @@ function CoADpsAndMobTracker_UI.Refresh()
                 local hex = GetClassHexColor(row.class)
                 GameTooltip:AddLine("|c" .. hex .. row.name .. "|r")
                 GameTooltip:AddDoubleLine("Class:", "|c" .. hex .. row.class .. "|r")
-                GameTooltip:AddDoubleLine("Total Damage:", CoADpsAndMobTracker_Engine.FormatNumber(row.rawData.damage) .. " (" .. row.rawData.damage .. ")")
-                local dps = CoADpsAndMobTracker_Engine.GetPlayerDPS(row.guid)
-                GameTooltip:AddDoubleLine("DPS:", tostring(dps))
-                GameTooltip:AddDoubleLine("Damage Tanked (Taken):", CoADpsAndMobTracker_Engine.FormatNumber(row.rawData.tanked or 0))
-                GameTooltip:AddDoubleLine("Damage Healed:", CoADpsAndMobTracker_Engine.FormatNumber(row.rawData.healing or 0))
-                local share = highestVal > 0 and (row.val / highestVal * 100) or 0
-                GameTooltip:AddDoubleLine("Stat Share:", string.format("%.1f%%", share))
+                GameTooltip:AddDoubleLine("Total Damage:", CoADpsAndMobTracker_Engine.FormatNumber(row.rawData.damage or 0) .. " (" .. (row.rawData.damage or 0) .. ")")
+                GameTooltip:AddDoubleLine("DPS:", tostring(row.rawDps))
+                GameTooltip:AddDoubleLine("Damage Tanked:", CoADpsAndMobTracker_Engine.FormatNumber(row.rawData.tanked or 0))
+                GameTooltip:AddDoubleLine("Total Healing:", CoADpsAndMobTracker_Engine.FormatNumber(row.rawData.healing or 0))
+                GameTooltip:AddDoubleLine("HPS:", tostring(row.rawHps))
+                
+                local sharePct = 0
+                if activeStat == "dps" or activeStat == "damage" then
+                    sharePct = totalGroupDamage > 0 and ((row.rawData.damage or 0) / totalGroupDamage * 100) or 0
+                elseif activeStat == "healing" then
+                    sharePct = totalGroupHealing > 0 and ((row.rawData.healing or 0) / totalGroupHealing * 100) or 0
+                elseif activeStat == "tanked" then
+                    sharePct = totalGroupTanked > 0 and ((row.rawData.tanked or 0) / totalGroupTanked * 100) or 0
+                end
+                GameTooltip:AddDoubleLine("Group Share:", string.format("%.1f%%", sharePct))
+                
                 GameTooltip:AddLine(" ")
-                GameTooltip:AddLine("|cffFFD700Left-Click to toggle spell details|r")
+                if activeSegment == "overall" then
+                    GameTooltip:AddLine("|cffFFD700Left-Click to toggle spell details|r")
+                else
+                    GameTooltip:AddLine("|cffaaaaaaClicking spell details disabled for boss segments|r")
+                end
                 GameTooltip:Show()
             end)
             rFrame:SetScript("OnLeave", function()
@@ -537,6 +698,7 @@ function CoADpsAndMobTracker_UI.Refresh()
 
     else
         -- ── MOBS MODE ──
+        _frame._timerText:SetText("")
         local list = {}
         for guid, mob in pairs(CoADpsAndMobTracker_ActiveMobs) do
             table.insert(list, mob)
@@ -545,7 +707,7 @@ function CoADpsAndMobTracker_UI.Refresh()
 
         for _, mob in ipairs(list) do
             local rFrame = CreateFrame("Frame", nil, child)
-            rFrame:SetSize(218, 26)
+            rFrame:SetSize(248, 26)
             rFrame:SetPoint("TOPLEFT", child, "TOPLEFT", 0, yOff)
 
             -- Mob Bar Background
@@ -566,7 +728,7 @@ function CoADpsAndMobTracker_UI.Refresh()
             fill:SetPoint("TOP", rFrame, "TOP")
             fill:SetPoint("BOTTOM", rFrame, "BOTTOM")
             local hpPct = mob.maxHp > 0 and (mob.hp / mob.maxHp) or 0
-            fill:SetWidth((218 - 4) * hpPct)
+            fill:SetWidth((248 - 4) * hpPct)
             -- HP color goes from green to red based on health percentage
             fill:SetGradientAlpha("HORIZONTAL", 1 - hpPct, hpPct, 0.0, 0.65, (1 - hpPct) * 0.4, hpPct * 0.4, 0.0, 0.2)
 
@@ -719,6 +881,8 @@ function CoADpsAndMobTracker_UI.CreateMinimapButton()
         elseif btn == "RightButton" then
             PlaySound(856)
             CoADpsAndMobTracker_Engine.ResetSession()
+            activeSegment = "overall"
+            if _frame then CoADpsAndMobTracker_UI.Refresh() end
             print("|cff00ccff[CoADpsAndMobTracker] Combat data reset!|r")
         end
     end)

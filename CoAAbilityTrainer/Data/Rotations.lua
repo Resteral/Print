@@ -76,12 +76,23 @@ CoAAT_RotationRules = {
 
     -- Runemaster
     runemaster = {
-        runic_fury = {
+        engravement = {
+            { condition = "health_lt",      threshold  = 40,             abilityId = "ward_of_protection", urgency = "critical" },
+            { condition = "resource_gte",   threshold  = 3,              abilityId = "engrave_fortitude",  urgency = "high" },
+            { condition = "always",                                      abilityId = "rune_shield",        urgency = "low" },
+        },
+        glyphic = {
             { condition = "debuff_missing", debuffName = "Elemental Brand", abilityId = "elemental_brand",    urgency = "critical" },
-            { condition = "proc_active",    procName   = "Rune Mastery",    abilityId = "runic_detonation",   urgency = "high" },
             { condition = "resource_gte",   threshold  = 3,                 abilityId = "runic_detonation",   urgency = "high" },
             { condition = "debuff_expiring",debuffName = "Elemental Brand", abilityId = "elemental_brand",    urgency = "high" },
-            { condition = "always",                                          abilityId = "rune_strike",        urgency = "low" },
+            { condition = "always",                                         abilityId = "glyph_bolt",         urgency = "low" },
+        },
+        runeblade = {
+            { condition = "debuff_missing", debuffName = "Elemental Brand", abilityId = "elemental_brand",    urgency = "critical" },
+            { condition = "proc_active",    procName   = "Rune Mastery",    abilityId = "rune_carve",         urgency = "high" },
+            { condition = "resource_gte",   threshold  = 3,                 abilityId = "rune_carve",         urgency = "high" },
+            { condition = "debuff_expiring",debuffName = "Elemental Brand", abilityId = "elemental_brand",    urgency = "high" },
+            { condition = "always",                                         abilityId = "rune_strike",        urgency = "low" },
         },
     },
 

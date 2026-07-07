@@ -251,6 +251,30 @@ local LESSONS = {
             },
         },
     },
+    vault_of_the_inquisition = {
+        {
+            title = "Vault of the Inquisition — Dungeon Overview",
+            icon = "Interface\\\\Icons\\\\INV_Misc_QuestionMark",
+            pages = {
+                "This dungeon features many caster mobs. Use Soul Shriek to silence them and maintain control.",
+                "Maintain your resource (Felfury, Runic Power, etc.) to burst down adds quickly.",
+                "Watch for environmental hazards; avoid standing in fire.",
+                "Coordinate interrupts across the party for maximum efficiency."
+            }
+        },
+    },
+    road_to_the_other_side = {
+        {
+            title = "Road to the Other Side — Dungeon Overview",
+            icon = "Interface\\\\Icons\\\\INV_Misc_QuestionMark",
+            pages = {
+                "A fast-paced dungeon with multiple AoE trash packs. Keep Soul Shriek on cooldown to silence waves of casters.",
+                "Prioritize resource generation early to handle heavy damage phases.",
+                "Use defensive cooldowns when encountering elite encounters.",
+                "Stay mobile to avoid ground hazards and keep your rotation smooth."
+            }
+        },
+    },
 }
 
 -- ─────────────────────────────────────────────

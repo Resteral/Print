@@ -568,8 +568,116 @@ CoAAT_Abilities = {
         resourceColor = { r=0.2, g=0.5, b=1.0 },
         spendThreshold = 3,
         specs = {
-            runic_fury = {
-                name = "Runic Fury",
+            -- Engravement (Tank Spec)
+            engravement = {
+                name = "Engravement",
+                abilities = {
+                    {
+                        id = "rune_shield",
+                        name = "Rune Shield",
+                        type = "generator",
+                        icon = "Interface\\Icons\\Spell_Holy_PowerWordShield",
+                        description = "Shields you with protective runes. Generates 1 Rune Charge and absorbs minor damage.",
+                        hint = "BUILD SHIELD: Use Rune Shield to build Rune Charges and maintain a basic absorption buffer.",
+                        priority = 2,
+                        cooldown = 3,
+                        resourceGain = 1,
+                        color = { r=0.2, g=0.7, b=0.9 },
+                    },
+                    {
+                        id = "engrave_fortitude",
+                        name = "Engrave Fortitude",
+                        type = "spender",
+                        icon = "Interface\\Icons\\Spell_Holy_WordFortitude",
+                        description = "Consumes 3 Rune Charges to engrave runes of fortitude onto your armor. Increases Stamina by 20% for 15s.",
+                        hint = "ACTIVE MITIGATION: Keep Engrave Fortitude buff active always during tanking.",
+                        priority = 1,
+                        cooldown = 0,
+                        resourceCost = 3,
+                        color = { r=0.4, g=0.8, b=0.5 },
+                    },
+                    {
+                        id = "ward_of_protection",
+                        name = "Ward of Protection",
+                        type = "cooldown",
+                        icon = "Interface\\Icons\\Spell_Holy_DevotionAura",
+                        description = "Triggers a powerful ward, decreasing all damage taken by 30% for 6 seconds. 30s cooldown.",
+                        hint = "DEFENSIVE CD: Use during big trash pulls or boss heavy hitting phases.",
+                        priority = 3,
+                        cooldown = 30,
+                        color = { r=0.1, g=0.5, b=0.8 },
+                    },
+                },
+                rotation = {
+                    "1. Cast Ward of Protection during heavy damage",
+                    "2. Spam Rune Shield to build Rune Charges",
+                    "3. Spend charges on Engrave Fortitude to keep 20% Stamina up",
+                },
+                rotationSummary = "Rune Shield → Engrave Fortitude (Keep Up) → Ward of Protection on CD",
+            },
+            -- Glyphic (Ranged Caster Spec)
+            glyphic = {
+                name = "Glyphic",
+                abilities = {
+                    {
+                        id = "elemental_brand",
+                        name = "Elemental Brand",
+                        type = "debuff",
+                        icon = "Interface\\Icons\\Spell_Fire_RagnarosLavaBolt",
+                        description = "Brands the target with an elemental rune. Amplifies all your damage by 20%. Lasts 8 seconds.",
+                        hint = "⚠ KEEP UP: Elemental Brand is your most important ability. Refresh at 2s!",
+                        priority = 0,
+                        cooldown = 0,
+                        duration = 8,
+                        color = { r=1.0, g=0.5, b=0.0 },
+                    },
+                    {
+                        id = "glyph_bolt",
+                        name = "Glyph Bolt",
+                        type = "generator",
+                        icon = "Interface\\Icons\\Spell_Arcane_Starfire",
+                        description = "Fires a ranged runic bolt. Generates 1 Rune Charge. Use until you have 3+ charges.",
+                        hint = "BUILD TO 3: Cast Glyph Bolt from range to stack Rune Charges.",
+                        priority = 2,
+                        cooldown = 2,
+                        resourceGain = 1,
+                        color = { r=0.5, g=0.3, b=1.0 },
+                    },
+                    {
+                        id = "runic_detonation",
+                        name = "Runic Detonation",
+                        type = "spender",
+                        icon = "Interface\\Icons\\Spell_Nature_ArcaneExplosion",
+                        description = "Detonates all Rune Charges in a massive elemental burst. Use at 3+ charges for maximum value.",
+                        hint = "DETONATE AT 3+: Massive damage. Don't waste at 1-2 charges.",
+                        priority = 2,
+                        cooldown = 0,
+                        resourceCost = 3,
+                        color = { r=0.5, g=0.7, b=1.0 },
+                    },
+                    {
+                        id = "arcane_binding",
+                        name = "Arcane Binding",
+                        type = "cooldown",
+                        icon = "Interface\\Icons\\Spell_Arcane_Arcane04",
+                        description = "Silences and roots the target for 4 seconds. Use on dangerous caster mobs preemptively.",
+                        hint = "CC TOOL: Silence casters before they cast. 20s cooldown.",
+                        priority = 3,
+                        cooldown = 20,
+                        color = { r=0.4, g=0.3, b=0.9 },
+                    },
+                },
+                rotation = {
+                    "1. APPLY Elemental Brand (refresh at 2s left!)",
+                    "2. SPAM Glyph Bolt to build charges",
+                    "3. DETONATE at 3+ Rune Charges",
+                    "4. CC casters with Arcane Binding proactively",
+                },
+                rotationSummary = "Elemental Brand → Glyph Bolt × 3 → Runic Detonation → Refresh Brand → Repeat",
+            },
+            -- Runeblade (Melee Spec)
+            runeblade = {
+                name = "Runeblade",
                 abilities = {
                     {
                         id = "elemental_brand",
@@ -589,23 +697,23 @@ CoAAT_Abilities = {
                         type = "generator",
                         icon = "Interface\\Icons\\Spell_Arcane_RuneStrike",
                         description = "Elemental melee strike. Generates 1 Rune Charge. Use until you have 3+ charges.",
-                        hint = "BUILD TO 3: Spam Rune Strike to stack Rune Charges.",
+                        hint = "BUILD TO 3: Spam Rune Strike in melee to stack Rune Charges.",
                         priority = 2,
                         cooldown = 3,
                         resourceGain = 1,
                         color = { r=0.3, g=0.5, b=1.0 },
                     },
                     {
-                        id = "runic_detonation",
-                        name = "Runic Detonation",
+                        id = "rune_carve",
+                        name = "Rune Carve",
                         type = "spender",
-                        icon = "Interface\\Icons\\Spell_Nature_ArcaneExplosion",
-                        description = "Detonates all Rune Charges in a massive elemental burst. Use at 3+ charges for maximum value.",
-                        hint = "DETONATE AT 3+: Massive damage. Don't waste at 1-2 charges.",
+                        icon = "Interface\\Icons\\Spell_Shadow_DeadlyShield",
+                        description = "Consumes Rune Charges for a heavy melee runeblade strike. Deals massive physical and arcane damage.",
+                        hint = "SPEND AT 3+: Use Rune Carve at 3+ charges for massive single target damage.",
                         priority = 2,
                         cooldown = 0,
                         resourceCost = 3,
-                        color = { r=0.5, g=0.7, b=1.0 },
+                        color = { r=0.8, g=0.2, b=0.2 },
                     },
                     {
                         id = "rune_mastery",
@@ -618,26 +726,14 @@ CoAAT_Abilities = {
                         cooldown = 0,
                         color = { r=0.6, g=0.8, b=1.0 },
                     },
-                    {
-                        id = "arcane_binding",
-                        name = "Arcane Binding",
-                        type = "cooldown",
-                        icon = "Interface\\Icons\\Spell_Arcane_Arcane04",
-                        description = "Silences and roots the target for 4 seconds. Use on dangerous caster mobs preemptively.",
-                        hint = "CC TOOL: Silence casters before they cast. 20s cooldown.",
-                        priority = 3,
-                        cooldown = 20,
-                        color = { r=0.4, g=0.3, b=0.9 },
-                    },
                 },
                 rotation = {
                     "1. APPLY Elemental Brand (refresh at 2s left!)",
                     "2. SPAM Rune Strike to build charges",
-                    "3. DETONATE at 3+ Rune Charges",
+                    "3. RUNE CARVE at 3+ Rune Charges",
                     "4. REACT to Rune Mastery double-charge procs",
-                    "5. CC casters with Arcane Binding proactively",
                 },
-                rotationSummary = "Elemental Brand → Rune Strike × 3 → Runic Detonation → Refresh Brand → Repeat",
+                rotationSummary = "Elemental Brand → Rune Strike × 3 → Rune Carve → Refresh Brand → Repeat",
             },
         },
     },
@@ -821,17 +917,9 @@ CoAAT_Abilities = {
         },
     },
 
-    -- ══════════════════════════════════════════════════════════════
-    --  REAPER  (Resources: Mana + Reaped Souls 0-5)
-    --  July 2026 CoA Full Launch — Updated
-    --  "Warriors possessed by hungry spirits trapped in enchanted
-    --   scythes. Life-siphoning death dealers who use their own
-    --   health as ammunition and reclaim it from their enemies."
-    --  • All equipped weapons are visually transformed into scythes
-    --  • Armor Type: Mail
-    --  • Soul Infusion triggers when Reaped Souls = MAX (5)
-    --  • Health-as-resource: many abilities cost % max HP
-    -- ══════════════════════════════════════════════════════════════
+    -- ══════════════════════════════════════════════════════════
+    --  REAPER  — July 2026 CoA Full Launch Update
+    -- ══════════════════════════════════════════════════════════
     reaper = {
         resource    = "Reaped Souls",
         resourceMax = 5,           -- stacks 0-5; Soul Infusion at 5
@@ -1198,7 +1286,7 @@ CoAAT_Abilities = {
                     "5. SPAM Soul Strike every 3s to generate Reaped Souls and maintain threat.",
                     "6. SPEND 2 souls on Dark Sustenance when HP drops below 40%.",
                     "7. USE Death Grip to pull fleeing enemies back before they leash.",
-                    "8. SILENCE casters with Soul Shriek every 30s — critical in dungeon pulls.",
+                    "8. SILENCE casters with Soul Shriek every 30s — critical in dungeon pulls, especially in Vault of the Inquisition and Road to the Other Side.",
                     "9. DETONATE Soul Infusion at 5 Souls — AoE taunt + 8s invulnerability shield!",
                 },
                 rotationSummary = "Soul Barrier up → Parry of Souls → Soul Strike spam → Dark Sustenance at low HP → Soul Infusion at 5",
