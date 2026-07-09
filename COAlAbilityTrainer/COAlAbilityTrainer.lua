@@ -107,6 +107,7 @@ local function BuildAllModules()
     SafeCall("EnemyTacticEvt", function() CoAAT_EnemyTacticHUD.RegisterEvents() end)
     SafeCall("TreasureHUD",    function() CoAAT_TreasureHUD.Build()            end)
     SafeCall("CombatLog",      function() CoAAT_CombatLog.Build()              end)
+    SafeCall("PvPHUD",         function() CoAAT_PvPHUD.Build()                 end)
     SafeCall("SettingsFrame",  function() CoAAT_SettingsFrame.Build()          end)
     SafeCall("TutorialPanel",  function() CoAAT_TutorialPanel.Build()          end)
     SafeCall("MinimapButton",  function() CoAAT_MinimapButton.Create()         end)
@@ -275,9 +276,16 @@ SlashCmdList["COAAT"] = function(msg)
             CoAAT_EnemyTacticHUD.Toggle()
         end
 
-    elseif msg == "treasure" or msg == "pvp" then
+    elseif msg == "treasure" then
         if CoAAT_TreasureHUD and CoAAT_TreasureHUD.Toggle then
             CoAAT_TreasureHUD.Toggle()
+        end
+
+    elseif msg == "pvp" or msg == "pvphud" then
+        if CoAAT_PvPHUD and CoAAT_PvPHUD.Toggle then
+            CoAAT_PvPHUD.Toggle()
+        else
+            DEFAULT_CHAT_FRAME:AddMessage("|cffcc88ff[COAl]|r PvP HUD not loaded.")
         end
 
     elseif msg == "aoe" or msg == "mode" then
@@ -313,9 +321,11 @@ SlashCmdList["COAAT"] = function(msg)
         DEFAULT_CHAT_FRAME:AddMessage("  |cff00ccff/coal|r                — Settings panel")
         DEFAULT_CHAT_FRAME:AddMessage("  |cff00ccff/coal macros|r         — Macro Builder")
         DEFAULT_CHAT_FRAME:AddMessage("  |cff00ccff/coal log|r            — Toggle Combat Log")
+        DEFAULT_CHAT_FRAME:AddMessage("  |cff00ccff/coal pvp|r            — Toggle PvP HUD Tracker")
         DEFAULT_CHAT_FRAME:AddMessage("  |cff00ccff/coal np|r              — Toggle nameplate HUD")
         DEFAULT_CHAT_FRAME:AddMessage("  |cff00ccff/coal hud|r             — Toggle Combat HUD")
         DEFAULT_CHAT_FRAME:AddMessage("  |cff00ccff/coal enemy|r           — Toggle Enemy Tactic HUD")
+        DEFAULT_CHAT_FRAME:AddMessage("  |cff00ccff/coal treasure|r        — Toggle Treasure Map HUD")
         DEFAULT_CHAT_FRAME:AddMessage("  |cff00ccff/coal aoe|r             — Toggle AoE mode")
         DEFAULT_CHAT_FRAME:AddMessage("  |cff00ccff/coal class <id>|r      — Set class")
         DEFAULT_CHAT_FRAME:AddMessage("  |cff00ccff/coal rl|r              — Reload UI")

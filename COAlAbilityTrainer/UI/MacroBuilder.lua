@@ -87,11 +87,38 @@ local TEMPLATES = {
                 ab.name, ab.name, ab.name, ab.name)
         end,
     },
+    pvp_focus_cc = {
+        label = "PvP CC Focus",
+        desc  = "Shift = cast on focus; else target",
+        build = function(ab)
+            return string.format(
+                "#showtooltip %s\n/cast [mod:shift,@focus,harm,nodead] %s; [@target,harm,nodead] %s",
+                ab.name, ab.name, ab.name)
+        end,
+    },
+    pvp_burst = {
+        label = "PvP Burst",
+        desc  = "Use Trinkets 13/14 + Gloves 10 + Cast",
+        build = function(ab)
+            return string.format(
+                "#showtooltip %s\n/use 13\n/use 14\n/use 10\n/cast %s",
+                ab.name, ab.name)
+        end,
+    },
+    pvp_defensive = {
+        label = "PvP Stop & Defend",
+        desc  = "Stopcast + Use Healthstone + Cast",
+        build = function(ab)
+            return string.format(
+                "#showtooltip %s\n/stopcasting\n/use Healthstone\n/cast %s",
+                ab.name, ab.name)
+        end,
+    },
 }
 
 local TEMPLATE_ORDER = {
     "basic","stopcasting","modifier","mouseover",
-    "interrupt","focus","toggle_aura"
+    "interrupt","focus","toggle_aura","pvp_focus_cc","pvp_burst","pvp_defensive"
 }
 
 -- ─────────────────────────────────────────────────────────────
