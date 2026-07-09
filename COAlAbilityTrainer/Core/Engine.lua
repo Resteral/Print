@@ -326,6 +326,11 @@ function CoAAT_Engine.ScanSpellbook()
     end
 end
 
+function CoAAT_Engine.IsSpellKnown(spellName)
+    if not spellName then return false end
+    return knownSpells[spellName:lower()] == true
+end
+
 function CoAAT_Engine.EvaluateRotation()
     if not state.classId then return nil end
 

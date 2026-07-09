@@ -216,6 +216,13 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
         if CoAAT_Engine and CoAAT_Engine.ScanSpellbook then
             CoAAT_Engine.ScanSpellbook()
         end
+        if CoAAT_AuraDisplay and CoAAT_AuraDisplay.OnClassChanged and CoAAT_Engine then
+            local cid = CoAAT_Engine.GetClassId()
+            local sid = CoAAT_Engine.GetSpecId()
+            if cid and sid then
+                CoAAT_AuraDisplay.OnClassChanged(cid, sid)
+            end
+        end
     end
 end)
 

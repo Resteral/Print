@@ -179,45 +179,50 @@ function CoAAT_AuraDisplay.OnClassChanged(classId, specId)
     local specDef = CoAAT_Engine.GetSpecDef()
     if not specDef then return end
 
-    for i, ab in ipairs(specDef.abilities) do
-        if i > #auraIcons then break end
-        local ic = auraIcons[i]
-        ic._abilityDef = ab
+    local count = 0
+    for _, ab in ipairs(specDef.abilities) do
+        -- Only show if spell is known in spellbook
+        if CoAAT_Engine and CoAAT_Engine.IsSpellKnown and CoAAT_Engine.IsSpellKnown(ab.name) then
+            count = count + 1
+            if count > #auraIcons then break end
+            local ic = auraIcons[count]
+            ic._abilityDef = ab
 
-        -- Icon texture
-        ic._icon:SetTexture(ab.icon)
-        ic._nameText:SetText("") -- Hidden under icons for clean WeakAura look
+            -- Icon texture
+            ic._icon:SetTexture(ab.icon)
+            ic._nameText:SetText("") -- Hidden under icons for clean WeakAura look
 
-        -- Type badge
-        local typeShort = {
-            generator = "GEN", spender = "USE", cooldown = "CD",
-            proc = "PROC", buff = "BUFF", debuff = "DBFF", filler = "FILL"
-        }
-        local typeColors = {
-            generator = "|cff44aaff", spender = "|cffff8844", cooldown = "|cffcc44ff",
-            proc = "|cffffdd00", buff = "|cff44ff88", debuff = "|cffff4444", filler = "|cff888888"
-        }
-        local tc = typeColors[ab.type] or "|cffaaaaaa"
-        ic._typeBadge:SetText(tc .. (typeShort[ab.type] or "?") .. "|r")
+            -- Type badge
+            local typeShort = {
+                generator = "GEN", spender = "USE", cooldown = "CD",
+                proc = "PROC", buff = "BUFF", debuff = "DBFF", filler = "FILL"
+            }
+            local typeColors = {
+                generator = "|cff44aaff", spender = "|cffff8844", cooldown = "|cffcc44ff",
+                proc = "|cffffdd00", buff = "|cff44ff88", debuff = "|cffff4444", filler = "|cff888888"
+            }
+            local tc = typeColors[ab.type] or "|cffaaaaaa"
+            ic._typeBadge:SetText(tc .. (typeShort[ab.type] or "?") .. "|r")
 
-        -- BG tint by type
-        local tint = TYPE_TINT[ab.type] or { r=0.04, g=0.04, b=0.08 }
-        ic._bg:SetTexture(tint.r, tint.g, tint.b, 0.90)
+            -- BG tint by type
+            local tint = TYPE_TINT[ab.type] or { r=0.04, g=0.04, b=0.08 }
+            ic._bg:SetTexture(tint.r, tint.g, tint.b, 0.90)
 
-        -- Default border by type urgency feel
-        local bc = URGENCY_COLORS.low
-        if ab.type == "buff" or ab.type == "debuff" then bc = URGENCY_COLORS.high end
-        if ab.type == "proc"  then bc = URGENCY_COLORS.critical end
-        ic:SetBorderColor(bc.r, bc.g, bc.b, 0.5)
+            -- Default border by type urgency feel
+            local bc = URGENCY_COLORS.low
+            if ab.type == "buff" or ab.type == "debuff" then bc = URGENCY_COLORS.high end
+            if ab.type == "proc"  then bc = URGENCY_COLORS.critical end
+            ic:SetBorderColor(bc.r, bc.g, bc.b, 0.5)
 
-        -- Initial state
-        ic._mask:Show()   -- start grayed
-        ic._glow:SetAlpha(0)
-        ic._timer:SetText("")
-        ic._isActive = false
-        ic._glowPhase = 0
+            -- Initial state
+            ic._mask:Show()   -- start grayed
+            ic._glow:SetAlpha(0)
+            ic._timer:SetText("")
+            ic._isActive = false
+            ic._glowPhase = 0
 
-        ic:Show()
+            ic:Show()
+        end
     end
 end
 
