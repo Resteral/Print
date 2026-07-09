@@ -73,7 +73,7 @@ engineFrame:RegisterEvent("ZONE_CHANGED_NEW_AREA")
 engineFrame:SetScript("OnEvent", function(self, event, ...)
     if event == "ADDON_LOADED" then
         local addonName = ...
-        if addonName == "CoADpsAndMobTracker" then
+        if addonName == "COAlDpsTracker" then
             CoADpsAndMobTrackerDB = CoADpsAndMobTrackerDB or {
                 pos = { point = "CENTER", x = 150, y = 0 },
                 scale = 1.0,

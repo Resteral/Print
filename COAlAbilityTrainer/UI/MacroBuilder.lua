@@ -708,8 +708,8 @@ function CoAAT_MacroBuilder.Build()
     mbLbl:SetText("|cff66aaff📖 Open Macro Book|r")
     macroBookBtn:SetScript("OnClick", function()
         if not InCombatLockdown() then
-            MacroFrame_OpenMacroBook and MacroFrame_OpenMacroBook()
-            OpenMacroFrame and OpenMacroFrame()
+            if MacroFrame_OpenMacroBook then MacroFrame_OpenMacroBook() end
+            if OpenMacroFrame then OpenMacroFrame() end
         end
     end)
     macroBookBtn:SetScript("OnEnter", function() mbBG:SetVertexColor(0.12,0.22,0.50,0.95) end)

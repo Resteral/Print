@@ -670,7 +670,7 @@ function CoAAT_SettingsFrame.SetupHotbarPage2()
         if not rotMacroIndex or rotMacroIndex == 0 then
             local _, numChar = GetNumMacros()
             if numChar < 18 then
-                rotMacroIndex = CreateMacro(rotMacroName, "INV_Misc_QuestionMark", rotMacroBody, 1)
+                rotMacroIndex = CreateMacro(rotMacroName, "INV_Misc_QuestionMark", rotMacroBody, nil)
             else
                 local numGlobal = GetNumMacros()
                 if numGlobal < 36 then
