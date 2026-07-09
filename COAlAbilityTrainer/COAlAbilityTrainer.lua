@@ -3,7 +3,7 @@
 -- Events, initialization, slash commands
 -- ============================================================
 
-local ADDON_NAME = "CoAAbilityTrainer"
+local ADDON_NAME = "COAlAbilityTrainer"
 
 -- Global Fade Transitions for Trainer Addon
 function CoAAT_FadeIn(frame, duration)
@@ -124,8 +124,8 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
 
         -- Print welcome
         DEFAULT_CHAT_FRAME:AddMessage(
-            "|cffb048b5[CoA Ability Trainer]|r |cff00ccffv1.0 loaded!|r  " ..
-            "Type |cff00ccff/coaat|r to open settings, |cff00ccff/coaattut|r for tutorial."
+            "|cffb048b5[COAl Ability Trainer]|r |cff00ccffv1.0 loaded!|r  " ..
+            "Type |cff00ccff/coal|r to open settings, |cff00ccff/coaattut|r for tutorial."
         )
 
         if CoAAT_DB.selectedClass then
@@ -135,7 +135,7 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
             )
         else
             DEFAULT_CHAT_FRAME:AddMessage(
-                "|cffb048b5[CoAT]|r Type |cff00ccff/coaat|r and pick your class to get started!"
+                "|cffb048b5[COAl]|r Type |cff00ccff/coal|r and pick your class to get started!"
             )
         end
 
@@ -173,8 +173,9 @@ end)
 -- ─────────────────────────────────────────────────────────────────────────────
 -- Slash Commands
 -- ─────────────────────────────────────────────────────────────────────────────
-SLASH_COAAT1 = "/coaat"
-SLASH_COAAT2 = "/coaabilitytrainer"
+SLASH_COAAT1 = "/coal"
+SLASH_COAAT2 = "/coaat"
+SLASH_COAAT3 = "/coaabilitytrainer"
 SlashCmdList["COAAT"] = function(msg)
     msg = msg:lower():trim()
 
