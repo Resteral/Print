@@ -154,7 +154,7 @@ function CoAAT_AuraDisplay.Build(parent)
     _parent = parent
     auraIcons = {}
 
-    local maxAbilities = 8
+    local maxAbilities = 16
     for i = 1, maxAbilities do
         local col = ((i - 1) % COLS) + 1
         local row = math.floor((i - 1) / COLS) + 1
@@ -174,54 +174,64 @@ end
 -- Populate from current class spec abilities
 -- ─────────────────────────────────────────────
 function CoAAT_AuraDisplay.OnClassChanged(classId, specId)
+    CoAAT_AuraDisplay.RefreshFromSpellbook()
+end
+
+function CoAAT_AuraDisplay.RefreshFromSpellbook()
     for _, ic in ipairs(auraIcons) do ic:Hide() end
 
-    local specDef = CoAAT_Engine.GetSpecDef()
-    if not specDef then return end
-
+    local numTabs = GetNumSpellTabs() or 0
     local count = 0
-    for _, ab in ipairs(specDef.abilities) do
-        -- Only show if spell is known in spellbook
-        if CoAAT_Engine and CoAAT_Engine.IsSpellKnown and CoAAT_Engine.IsSpellKnown(ab.name) then
-            count = count + 1
-            if count > #auraIcons then break end
-            local ic = auraIcons[count]
-            ic._abilityDef = ab
 
-            -- Icon texture
-            ic._icon:SetTexture(ab.icon)
-            ic._nameText:SetText("") -- Hidden under icons for clean WeakAura look
+    for tab = 2, numTabs do
+        local _, _, offset, numSlots = GetSpellTabInfo(tab)
+        offset = offset or 0
+        numSlots = numSlots or 0
+        for slot = offset + 1, offset + numSlots do
+            local spellName, spellSubName = GetSpellBookItemName(slot, "spell")
+            local isPassive = IsPassiveSpell(slot, "spell")
+            local iconTex = GetSpellBookItemTexture(slot, "spell")
 
-            -- Type badge
-            local typeShort = {
-                generator = "GEN", spender = "USE", cooldown = "CD",
-                proc = "PROC", buff = "BUFF", debuff = "DBFF", filler = "FILL"
-            }
-            local typeColors = {
-                generator = "|cff44aaff", spender = "|cffff8844", cooldown = "|cffcc44ff",
-                proc = "|cffffdd00", buff = "|cff44ff88", debuff = "|cffff4444", filler = "|cff888888"
-            }
-            local tc = typeColors[ab.type] or "|cffaaaaaa"
-            ic._typeBadge:SetText(tc .. (typeShort[ab.type] or "?") .. "|r")
+            if spellName and not isPassive then
+                count = count + 1
+                if count > #auraIcons then break end
 
-            -- BG tint by type
-            local tint = TYPE_TINT[ab.type] or { r=0.04, g=0.04, b=0.08 }
-            ic._bg:SetTexture(tint.r, tint.g, tint.b, 0.90)
+                local ic = auraIcons[count]
 
-            -- Default border by type urgency feel
-            local bc = URGENCY_COLORS.low
-            if ab.type == "buff" or ab.type == "debuff" then bc = URGENCY_COLORS.high end
-            if ab.type == "proc"  then bc = URGENCY_COLORS.critical end
-            ic:SetBorderColor(bc.r, bc.g, bc.b, 0.5)
+                -- Construct a dynamic ability definition for this spell
+                local ab = {
+                    id = spellName:lower():gsub("%s", "_"),
+                    name = spellName,
+                    icon = iconTex or "Interface\\Icons\\INV_Misc_QuestionMark",
+                    type = "cooldown",
+                }
 
-            -- Initial state
-            ic._mask:Show()   -- start grayed
-            ic._glow:SetAlpha(0)
-            ic._timer:SetText("")
-            ic._isActive = false
-            ic._glowPhase = 0
+                ic._abilityDef = ab
 
-            ic:Show()
+                -- Icon texture
+                ic._icon:SetTexture(ab.icon)
+                ic._nameText:SetText("") -- Hidden under icons for clean WeakAura look
+
+                -- Type badge
+                ic._typeBadge:SetText("|cffcc44ffCD|r")
+
+                -- BG tint
+                local tint = TYPE_TINT.cooldown
+                ic._bg:SetTexture(tint.r, tint.g, tint.b, 0.90)
+
+                -- Default border
+                local bc = URGENCY_COLORS.low
+                ic:SetBorderColor(bc.r, bc.g, bc.b, 0.5)
+
+                -- Initial state
+                ic._mask:Show()   -- start grayed
+                ic._glow:SetAlpha(0)
+                ic._timer:SetText("")
+                ic._isActive = false
+                ic._glowPhase = 0
+
+                ic:Show()
+            end
         end
     end
 end
@@ -282,17 +292,38 @@ end
 -- ─────────────────────────────────────────────
 function CoAAT_AuraDisplay.AnimTick(dt)
     for _, ic in ipairs(auraIcons) do
-        if ic:IsShown() and ic._glowPhase and ic._glowPhase > 0 then
-            ic._glowPhase = ic._glowPhase + dt * 2.5
-            local alpha = math.abs(math.sin(ic._glowPhase * math.pi)) * 0.65
-            ic._glow:SetAlpha(alpha)
-            -- Loop indefinitely while active
-            if ic._glowPhase >= 2 then
-                if ic._isActive then
-                    ic._glowPhase = 0.01  -- keep looping
+        if ic:IsShown() then
+            -- 1. Cooldown update
+            if ic._abilityDef then
+                local start, duration, enabled = GetSpellCooldown(ic._abilityDef.name)
+                if start and duration and duration > 1.5 then
+                    local remaining = (start + duration) - GetTime()
+                    if remaining > 0 then
+                        ic._mask:Show()
+                        ic._timer:SetText(string.format("%.0f", remaining))
+                    else
+                        ic._mask:Hide()
+                        ic._timer:SetText("")
+                    end
                 else
-                    ic._glow:SetAlpha(0)
-                    ic._glowPhase = 0
+                    ic._mask:Hide()
+                    ic._timer:SetText("")
+                end
+            end
+
+            -- 2. Glow animation
+            if ic._glowPhase and ic._glowPhase > 0 then
+                ic._glowPhase = ic._glowPhase + dt * 2.5
+                local alpha = math.abs(math.sin(ic._glowPhase * math.pi)) * 0.65
+                ic._glow:SetAlpha(alpha)
+                -- Loop indefinitely while active
+                if ic._glowPhase >= 2 then
+                    if ic._isActive then
+                        ic._glowPhase = 0.01  -- keep looping
+                    else
+                        ic._glow:SetAlpha(0)
+                        ic._glowPhase = 0
+                    end
                 end
             end
         end
