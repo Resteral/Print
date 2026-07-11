@@ -383,6 +383,20 @@ function CoAAT_CombatHUD.ApplyTheme(r, g, b, hex)
             hud._rightWing:SetTexCoord(1, 0, 0, 1)
             hud._rightWing:SetVertexColor(1, 1, 1, 0.85)
             hud._rightWing:Show()
+        elseif classId == "necromancer" then
+            hud._classBG:SetTexture("Interface\\AddOns\\COAlAbilityTrainer\\Icons\\Necroui")
+            hud._classBG:SetVertexColor(1, 1, 1, 0.85)
+            hud._classBG:Show()
+
+            hud._leftWing:SetTexture("Interface\\AddOns\\COAlAbilityTrainer\\Icons\\Necrowing")
+            hud._leftWing:SetTexCoord(0, 1, 0, 1)
+            hud._leftWing:SetVertexColor(1, 1, 1, 0.85)
+            hud._leftWing:Show()
+
+            hud._rightWing:SetTexture("Interface\\AddOns\\COAlAbilityTrainer\\Icons\\Necrowing")
+            hud._rightWing:SetTexCoord(1, 0, 0, 1)
+            hud._rightWing:SetVertexColor(1, 1, 1, 0.85)
+            hud._rightWing:Show()
         else
             hud._classBG:Hide()
             hud._leftWing:Hide()

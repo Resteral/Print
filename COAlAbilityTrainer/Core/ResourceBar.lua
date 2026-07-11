@@ -164,7 +164,7 @@ function CoAAT_ResourceBar.Update(current, maxVal, color)
     f._fill:SetWidth(w)
 
     local classId = CoAAT_Engine and CoAAT_Engine.GetClassId() or "general"
-    local useCrystals = (classId == "reaper" or classId == "felsworn")
+    local useCrystals = (classId == "reaper" or classId == "felsworn" or classId == "necromancer")
 
     if classId == "reaper" then
         f._fill:SetTexture("Interface\\AddOns\\COAlAbilityTrainer\\Icons\\Reaperbar")
@@ -174,6 +174,12 @@ function CoAAT_ResourceBar.Update(current, maxVal, color)
         end
     elseif classId == "felsworn" then
         f._fill:SetTexture("Interface\\AddOns\\COAlAbilityTrainer\\Icons\\Felbar")
+        f._fill:SetVertexColor(1, 1, 1, 0.95)
+        if color then
+            f._spendFlash:SetTextColor(color.r, color.g, color.b)
+        end
+    elseif classId == "necromancer" then
+        f._fill:SetTexture("Interface\\AddOns\\COAlAbilityTrainer\\Icons\\Necrobar")
         f._fill:SetVertexColor(1, 1, 1, 0.95)
         if color then
             f._spendFlash:SetTextColor(color.r, color.g, color.b)
@@ -202,6 +208,8 @@ function CoAAT_ResourceBar.Update(current, maxVal, color)
             if useCrystals then
                 if classId == "reaper" then
                     cry:SetTexture("Interface\\AddOns\\COAlAbilityTrainer\\Icons\\Reapercrystal")
+                elseif classId == "necromancer" then
+                    cry:SetTexture("Interface\\AddOns\\COAlAbilityTrainer\\Icons\\Necrocrystal")
                 else
                     cry:SetTexture("Interface\\AddOns\\COAlAbilityTrainer\\Icons\\Crystal")
                 end
