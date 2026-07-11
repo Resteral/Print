@@ -410,9 +410,9 @@ function CoAAT_RotationHelper.SetNextAbilities(m1, m2, m3)
     local ugc = UGC[_urgency] or UGC.low
     f._glowRing:SetVertexColor(ugc.r, ugc.g, ugc.b)
 
-    if m1 and CoAAT_AuraDisplay.SetHighlighted then
-        CoAAT_AuraDisplay.SetHighlighted(m1.abilityId, m1.urgency)
-    end
+    -- if m1 and CoAAT_AuraDisplay.SetHighlighted then
+    --     CoAAT_AuraDisplay.SetHighlighted(m1.abilityId, m1.urgency)
+    -- end
 end
 
 function CoAAT_RotationHelper.SetNextAbility(abilityId, urgency, abilityDef)
