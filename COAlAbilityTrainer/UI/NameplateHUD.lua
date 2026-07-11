@@ -409,8 +409,17 @@ local function GetNPHealthBar(f)
     end
 end
 
+local function GetSafeRegions(f)
+    if not f then return {} end
+    local regions
+    local ok = pcall(function()
+        regions = { f:GetRegions() }
+    end)
+    return (ok and regions) or {}
+end
+
 local function GetNPName(f)
-    for _, r in ipairs({ f:GetRegions() }) do
+    for _, r in ipairs(GetSafeRegions(f)) do
         if r:GetObjectType() == "FontString" then
             local t = r:GetText()
             if t and t ~= "" then return t end

@@ -14,6 +14,15 @@ local _guildText = nil
 local _rankText = nil
 local _pvpStatsText = nil
 
+local function GetSafeRegions(frame)
+    if not frame then return {} end
+    local regions
+    local ok = pcall(function()
+        regions = { frame:GetRegions() }
+    end)
+    return (ok and regions) or {}
+end
+
 local function StyleNameplate(frame)
     if not frame or frame.styledCoA then return end
 
@@ -30,7 +39,7 @@ local function StyleNameplate(frame)
         end
     end
 
-    local regions = { frame:GetRegions() }
+    local regions = GetSafeRegions(frame)
     for _, region in ipairs(regions) do
         local objType = region:GetObjectType()
         if objType == "Texture" then
@@ -83,7 +92,7 @@ local function StyleAllNameplates()
     local kids = { WorldFrame:GetChildren() }
     for _, frame in ipairs(kids) do
         if frame:IsShown() and not frame:GetName() then
-            local regions = { frame:GetRegions() }
+            local regions = GetSafeRegions(frame)
             local isNameplate = false
             for _, region in ipairs(regions) do
                 if region:GetObjectType() == "Texture" then
@@ -115,7 +124,7 @@ local function FindTargetNameplate()
         if frame:IsShown() and not frame:GetName() then
             local nameMatches = false
             local isTargetGlow = false
-            local regions = { frame:GetRegions() }
+            local regions = GetSafeRegions(frame)
             for _, region in ipairs(regions) do
                 local objType = region:GetObjectType()
                 if objType == "FontString" then
@@ -141,7 +150,7 @@ local function FindTargetNameplate()
     for _, frame in ipairs(kids) do
         if frame:IsShown() and not frame:GetName() then
             local nameMatches = false
-            local regions = { frame:GetRegions() }
+            local regions = GetSafeRegions(frame)
             for _, region in ipairs(regions) do
                 if region:GetObjectType() == "FontString" and region:GetText() == targetName then
                     nameMatches = true
@@ -157,7 +166,7 @@ local function FindTargetNameplate()
     -- Pass 3: Fallback first matching name
     for _, frame in ipairs(kids) do
         if frame:IsShown() and not frame:GetName() then
-            local regions = { frame:GetRegions() }
+            local regions = GetSafeRegions(frame)
             for _, region in ipairs(regions) do
                 if region:GetObjectType() == "FontString" and region:GetText() == targetName then
                     return frame
