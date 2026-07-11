@@ -840,6 +840,10 @@ function CoAAT_Engine.ApplyClassTheme()
     if CoAAT_PlayerCard and CoAAT_PlayerCard.ApplyTheme then
         CoAAT_PlayerCard.ApplyTheme(r, g, b, hex)
     end
+    -- Dispatch to PvPHUD
+    if CoAAT_PvPHUD and CoAAT_PvPHUD.ApplyTheme then
+        CoAAT_PvPHUD.ApplyTheme(r, g, b, hex)
+    end
 end
 
 function CoAAT_Engine.PrintSpellbook()

@@ -247,11 +247,11 @@ function CoAAT_PvPHUD.OnCLEU(...)
 
     -- 4. Dangerous Cast Alerts
     if event == "SPELL_CAST_START" and DANGEROUS_SPELLS[spellName] then
-        -- Alert if targeting you or an ally
-        if destGUID == UnitGUID("player") or (destGUID and destGUID:find("Player-")) then
+        -- Alert if targeting you or a group member
+        if destGUID == UnitGUID("player") or (destName and (UnitInParty(destName) or UnitInRaid(destName))) then
             if _frame and _frame._alertBanner then
                 _frame._alertBanner:SetText(string.format("|cffffaa00⚡ INCOMING CC:|r %s casting |cff00ffff%s|r!", srcName or "Enemy", spellName))
-                PlaySound(826, "Master") -- Warn sound
+                PlaySound("RaidWarning") -- Warn sound (WotLK safe format)
                 UIFrameFadeOut(_frame._alertBanner, 3.0, 1.0, 0)
             end
         end
