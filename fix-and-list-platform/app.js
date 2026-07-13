@@ -124,13 +124,13 @@ let adCampaigns = [];
 let emailLogs = [];
 let emailSettings = { autoIntake: true, autoRehab: true, autoContract: true };
 let apiSettings = {
-    emailProvider: 'sandbox',
+    emailProvider: 'webhook',
     emailjsPublic: '',
     emailjsService: '',
     emailjsTemplate: '',
-    emailWebhook: '',
-    adsProvider: 'sandbox',
-    adsWebhook: ''
+    emailWebhook: 'https://hook.us2.make.com/pr1l0jvjtuto0qikljvjkrr82jtttmz1',
+    adsProvider: 'webhook',
+    adsWebhook: 'https://hook.us2.make.com/pr1l0jvjtuto0qikljvjkrr82jtttmz1'
 };
 let currentSelectedLeadId = null;
 let currentSlideIdx = 1;
@@ -204,14 +204,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const savedApiSettings = localStorage.getItem('revitalize_api_settings');
     if (savedApiSettings) {
         apiSettings = JSON.parse(savedApiSettings);
-        document.getElementById('api-email-provider').value = apiSettings.emailProvider || 'sandbox';
-        document.getElementById('api-emailjs-public').value = apiSettings.emailjsPublic || '';
-        document.getElementById('api-emailjs-service').value = apiSettings.emailjsService || '';
-        document.getElementById('api-emailjs-template').value = apiSettings.emailjsTemplate || '';
-        document.getElementById('api-email-webhook-url').value = apiSettings.emailWebhook || '';
-        document.getElementById('api-ads-provider').value = apiSettings.adsProvider || 'sandbox';
-        document.getElementById('api-ads-webhook-url').value = apiSettings.adsWebhook || '';
+    } else {
+        localStorage.setItem('revitalize_api_settings', JSON.stringify(apiSettings));
     }
+
+    document.getElementById('api-email-provider').value = apiSettings.emailProvider || 'webhook';
+    document.getElementById('api-emailjs-public').value = apiSettings.emailjsPublic || '';
+    document.getElementById('api-emailjs-service').value = apiSettings.emailjsService || '';
+    document.getElementById('api-emailjs-template').value = apiSettings.emailjsTemplate || '';
+    document.getElementById('api-email-webhook-url').value = apiSettings.emailWebhook || 'https://hook.us2.make.com/pr1l0jvjtuto0qikljvjkrr82jtttmz1';
+    document.getElementById('api-ads-provider').value = apiSettings.adsProvider || 'webhook';
+    document.getElementById('api-ads-webhook-url').value = apiSettings.adsWebhook || 'https://hook.us2.make.com/pr1l0jvjtuto0qikljvjkrr82jtttmz1';
+    
     toggleApiFields();
 
     if (apiSettings.emailProvider === 'emailjs' && apiSettings.emailjsPublic) {
