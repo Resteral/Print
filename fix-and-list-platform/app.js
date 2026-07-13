@@ -308,6 +308,10 @@ function switchView(viewName) {
     if (viewName === 'portal') {
         document.getElementById('view-portal').classList.add('active');
         document.getElementById('btn-portal').classList.add('active');
+    } else if (viewName === 'market') {
+        document.getElementById('view-market').classList.add('active');
+        document.getElementById('btn-market').classList.add('active');
+        renderPublicCatalog();
     } else {
         document.getElementById('view-dashboard').classList.add('active');
         document.getElementById('btn-dashboard').classList.add('active');
@@ -336,6 +340,7 @@ function switchDashSubTab(subTabName) {
         document.getElementById('dash-tab-emails').classList.add('active');
         document.getElementById('tab-btn-emails').classList.add('active');
         renderEmailLogs();
+        updateCampaignTemplatePreview();
     } else if (subTabName === 'analytics') {
         document.getElementById('dash-tab-analytics').classList.add('active');
         document.getElementById('tab-btn-analytics').classList.add('active');
@@ -3195,4 +3200,233 @@ function renderClientInvoices(lead) {
         `;
         container.appendChild(card);
     });
+}
+
+function renderPublicCatalog() {
+    const grid = document.getElementById('public-catalog-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+
+    // Filter properties in 'listed' stage
+    const listedLeads = leads.filter(l => l.stage === 'listed');
+
+    if (listedLeads.length === 0) {
+        grid.innerHTML = `
+            <div style="grid-column: span 3; text-align:center; padding:3rem; color:var(--text-muted);">
+                <i data-lucide="info" style="width:48px; height:48px; margin-bottom:1rem; opacity:0.5;"></i>
+                <p style="font-size:1.1rem; font-weight:600; color:white;">No properties currently active on the market.</p>
+                <p style="font-size:0.85rem; margin-top:0.25rem;">Move a lead to the 'Listed on MLS' stage inside the Agent Dashboard to display it here.</p>
+            </div>
+        `;
+        lucide.createIcons();
+        return;
+    }
+
+    listedLeads.forEach(lead => {
+        let totalDiscountedRehab = 0;
+        lead.scope.forEach(itemId => {
+            const item = REHAB_ITEMS.find(i => i.id === itemId);
+            if (item) totalDiscountedRehab += item.discounted;
+        });
+
+        // Highlight items
+        const highlightsHtml = lead.scope.slice(0, 3).map(itemId => {
+            const item = REHAB_ITEMS.find(i => i.id === itemId);
+            return item ? `<span class="badge" style="background:rgba(99,102,241,0.1); color:#a5b4fc; border:1px solid rgba(99,102,241,0.2); font-size:0.7rem; padding:0.15rem 0.5rem; border-radius:10px;">${item.name}</span>` : '';
+        }).join(' ');
+
+        const card = document.createElement('div');
+        card.className = 'glass-card lead-card';
+        card.style.cursor = 'default';
+        card.style.display = 'flex';
+        card.style.flexDirection = 'column';
+        card.style.justifyContent = 'space-between';
+        card.style.height = '100%';
+        card.style.padding = '1.5rem';
+
+        card.innerHTML = `
+            <div>
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.75rem;">
+                    <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--primary); font-weight:700;">Active Revitalized Listing</div>
+                    <div style="font-size:1.25rem; font-weight:800; color:var(--success);">$${lead.targetARV.toLocaleString()}</div>
+                </div>
+                <h3 style="font-size:1.1rem; font-weight:800; color:white; margin-bottom:0.25rem;">${lead.address}</h3>
+                <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1rem;">Fully renovated, turn-key residence.</p>
+                
+                <div style="display:flex; gap:1.25rem; font-size:0.85rem; color:white; border-top:1px solid rgba(255,255,255,0.05); border-bottom:1px solid rgba(255,255,255,0.05); padding:0.6rem 0; margin-bottom:1.25rem;">
+                    <div><span style="font-weight:700;">4</span> Beds</div>
+                    <div><span style="font-weight:700;">3</span> Baths</div>
+                    <div><span style="font-weight:700;">2,250</span> Sq Ft</div>
+                </div>
+
+                <div style="margin-bottom:1.5rem;">
+                    <div style="font-size:0.75rem; color:var(--text-muted); font-weight:700; text-transform:uppercase; margin-bottom:0.5rem;">Upgraded Scopes Included:</div>
+                    <div style="display:flex; flex-wrap:wrap; gap:0.4rem;">
+                        ${highlightsHtml || '<span style="font-size:0.75rem; color:var(--text-muted);">Standard full prep upgrades</span>'}
+                    </div>
+                </div>
+            </div>
+
+            <div style="display:flex; gap:0.75rem; border-top:1px solid rgba(255,255,255,0.05); padding-top:1.25rem;">
+                <button class="btn-secondary" style="flex:1; padding:0.6rem; display:flex; justify-content:center; align-items:center; gap:4px;" onclick="openTourModal('${lead.id}', '${lead.address.replace(/'/g, "\\'")}')">
+                    <i data-lucide="calendar" style="width:14px; height:14px;"></i> Tour
+                </button>
+                <button class="btn-primary" style="flex:1; padding:0.6rem; display:flex; justify-content:center; align-items:center; gap:4px;" onclick="openOfferModal('${lead.id}', '${lead.address.replace(/'/g, "\\'")}')">
+                    <i data-lucide="banknote" style="width:14px; height:14px;"></i> Buy/Offer
+                </button>
+            </div>
+        `;
+        grid.appendChild(card);
+    });
+
+    lucide.createIcons();
+}
+
+function openOfferModal(leadId, address) {
+    document.getElementById('offer-lead-id').value = leadId;
+    document.getElementById('offer-property-address').innerText = `Property: ${address}`;
+    const modal = document.getElementById('offer-modal');
+    modal.style.display = 'flex';
+    setTimeout(() => modal.classList.add('active'), 10);
+}
+
+function closeOfferModal() {
+    const modal = document.getElementById('offer-modal');
+    modal.classList.remove('active');
+    setTimeout(() => modal.style.display = 'none', 300);
+}
+
+function openTourModal(leadId, address) {
+    document.getElementById('tour-lead-id').value = leadId;
+    document.getElementById('tour-property-address').innerText = `Property: ${address}`;
+    const modal = document.getElementById('tour-modal');
+    modal.style.display = 'flex';
+    setTimeout(() => modal.classList.add('active'), 10);
+}
+
+function closeTourModal() {
+    const modal = document.getElementById('tour-modal');
+    modal.classList.remove('active');
+    setTimeout(() => modal.style.display = 'none', 300);
+}
+
+function handleSendOffer(event) {
+    event.preventDefault();
+    const leadId = document.getElementById('offer-lead-id').value;
+    const buyerName = document.getElementById('offer-buyer-name').value;
+    const buyerEmail = document.getElementById('offer-buyer-email').value;
+    const amount = parseInt(document.getElementById('offer-amount').value);
+    const terms = document.getElementById('offer-terms').value;
+
+    const lead = leads.find(l => l.id === leadId);
+    if (!lead) return;
+
+    // Log the outbound notification in the email communications list
+    const log = {
+        id: 'log-' + Date.now(),
+        leadId: leadId,
+        address: lead.address,
+        type: 'Purchase Offer Received',
+        subject: `[BUYER OFFER] $${amount.toLocaleString()} received on ${lead.address}`,
+        body: `Purchase offer submitted by prospective buyer ${buyerName} (${buyerEmail}). Offer price: $${amount.toLocaleString()} via ${terms} financing. Status: Awaiting agent review.`,
+        timestamp: new Date().toLocaleString()
+    };
+
+    emailLogs.unshift(log);
+    localStorage.setItem('revitalize_email_logs', JSON.stringify(emailLogs));
+
+    // Close modal, reset form, notify user
+    closeOfferModal();
+    document.getElementById('offer-form').reset();
+    showToast(`Success! Your offer of $${amount.toLocaleString()} has been submitted to the broker!`);
+    renderEmailLogs();
+}
+
+function handleSendTour(event) {
+    event.preventDefault();
+    const leadId = document.getElementById('tour-lead-id').value;
+    const buyerName = document.getElementById('tour-buyer-name').value;
+    const buyerEmail = document.getElementById('tour-buyer-email').value;
+    const dateVal = document.getElementById('tour-date').value;
+
+    const lead = leads.find(l => l.id === leadId);
+    if (!lead) return;
+
+    const formattedDate = new Date(dateVal).toLocaleString();
+
+    const log = {
+        id: 'log-' + Date.now(),
+        leadId: leadId,
+        address: lead.address,
+        type: 'Tour Request Scheduled',
+        subject: `[TOUR REQUEST] Private viewing requested for ${lead.address}`,
+        body: `A private tour has been requested by ${buyerName} (${buyerEmail}) for ${formattedDate}. Status: Approved, dispatched confirmation email.`,
+        timestamp: new Date().toLocaleString()
+    };
+
+    emailLogs.unshift(log);
+    localStorage.setItem('revitalize_email_logs', JSON.stringify(emailLogs));
+
+    closeTourModal();
+    document.getElementById('tour-form').reset();
+    showToast(`Private tour request confirmed for ${formattedDate}!`);
+    renderEmailLogs();
+}
+
+// Campaign templates
+const CAMPAIGN_TEMPLATES = {
+    expired: {
+        subject: "Is your property at {Address} still on the market? We fund repairs.",
+        body: "Hi there,\n\nI noticed your listing at {Address} expired on the market. In today's market, 78% of active buyers pass on homes needing repairs or dated cosmetics (paint, floors, kitchens).\n\nRevitalize Realty advances 100% of these renovation costs upfront with zero out-of-pocket fees and zero interest, recovering the funds only when the home sells. We'll handle everything from planning to vetted contractor dispatches so you can sell for top dollar.\n\nBest regards,\nRevitalize Listing Team"
+    },
+    upgrade: {
+        subject: "Get up to $50,000 more for your home at {Address} - zero out of pocket.",
+        body: "Hi there,\n\nAre you planning to list your home but worried about the cost of making repairs? We specialize in preparing homes to capture maximum equity.\n\nWe advance all remodeling capital interest-free and manage the construction from start to finish. Let's unlock your true home valuation.\n\nBest regards,\nRevitalize Listing Team"
+    },
+    addition: {
+        subject: "Adding square footage to {Address} to maximize your listing price.",
+        body: "Hi there,\n\nDid you know adding a bathroom or extending your living area yields up to 150% ROI at closing? We provide interest-free advanced funding for additions and structural upgrades before listing your home.\n\nLet us design a custom plan to attract premium offers.\n\nBest regards,\nRevitalize Listing Team"
+    }
+};
+
+function updateCampaignTemplatePreview() {
+    const type = document.getElementById('campaign-template-select').value;
+    const template = CAMPAIGN_TEMPLATES[type];
+    
+    // Choose active lead address or fallback placeholder
+    const lead = leads.find(l => l.id === currentSelectedLeadId) || leads[0];
+    const addr = lead ? lead.address : "123 Main St";
+
+    const subject = template.subject.replace(/{Address}/g, addr);
+    const body = template.body.replace(/{Address}/g, addr);
+
+    document.getElementById('campaign-subject-input').value = subject;
+    document.getElementById('campaign-preview-body').value = body;
+}
+
+function triggerOutboundCampaignEmail() {
+    const targetEmail = document.getElementById('campaign-recipient-email').value;
+    const subject = document.getElementById('campaign-subject-input').value;
+    const body = document.getElementById('campaign-preview-body').value;
+
+    if (!targetEmail) {
+        showToast("Please enter a target recipient email address!");
+        return;
+    }
+
+    const log = {
+        id: 'log-' + Date.now(),
+        time: new Date().toLocaleString(),
+        recipient: targetEmail,
+        type: "Outbound Marketing Drip",
+        subject: subject,
+        body: body
+    };
+
+    emailLogs.unshift(log);
+    localStorage.setItem('revitalize_email_logs', JSON.stringify(emailLogs));
+
+    document.getElementById('campaign-recipient-email').value = '';
+    showToast("Marketing drip campaign email dispatched successfully!");
+    renderEmailLogs();
 }

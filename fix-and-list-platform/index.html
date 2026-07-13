@@ -22,6 +22,9 @@
             <button id="btn-portal" class="nav-tab active" onclick="switchView('portal')">
                 <i data-lucide="user"></i> Homeowner Portal
             </button>
+            <button id="btn-market" class="nav-tab" onclick="switchView('market')">
+                <i data-lucide="shopping-bag"></i> Browse Listings
+            </button>
             <button id="btn-dashboard" class="nav-tab" onclick="switchView('dashboard')">
                 <i data-lucide="layout-dashboard"></i> Agent Dashboard
             </button>
@@ -350,6 +353,25 @@
             </div>
         </section>
 
+        <!-- ================= PUBLIC BUYER MARKET CATALOG VIEW ================= -->
+        <section id="view-market" class="view-section">
+            <div class="hero-section">
+                <div class="hero-badge">Active Listings • Fully Renovated by Revitalize</div>
+                <h1 class="hero-title">Browse Our <span class="text-gradient">Revitalized Properties</span></h1>
+                <p class="hero-subtitle">Premium move-in ready homes modernized with quartz finishes, updated mechanics, and high-end aesthetics.</p>
+            </div>
+
+            <div class="glass-card" style="margin-top: 2rem; padding: 2rem;">
+                <div class="card-header" style="margin-bottom:1.5rem;">
+                    <i data-lucide="building" class="accent-text"></i>
+                    <h2>Available Homes For Sale</h2>
+                </div>
+                <div class="catalog-grid" id="public-catalog-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:2rem;">
+                    <!-- Populated dynamically by app.js -->
+                </div>
+            </div>
+        </section>
+
         <!-- ================= AGENT PIPELINE DASHBOARD VIEW ================= -->
         <section id="view-dashboard" class="view-section">
             <div class="dashboard-topbar">
@@ -480,6 +502,45 @@
                                     <span class="slider-switch round"></span>
                                 </label>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Outbound Funnel Campaign Builder -->
+                    <div class="glass-card templates-card" style="margin-top: 1.5rem;">
+                        <div class="card-header">
+                            <i data-lucide="funnel" class="accent-text"></i>
+                            <h3>Lead Capture & Marketing Campaigns</h3>
+                        </div>
+                        <div class="card-body settings-body" style="display:flex; flex-direction:column; gap:1.25rem;">
+                            <p class="section-desc">Create marketing drip campaigns targeting home owners with properties that need renovations to list successfully.</p>
+                            
+                            <div class="form-group">
+                                <label for="campaign-template-select">Campaign Message Drip Template</label>
+                                <select id="campaign-template-select" onchange="updateCampaignTemplatePreview()">
+                                    <option value="expired">Expired Listing Outreach (Unsold due to condition)</option>
+                                    <option value="upgrade">Upgrade-to-List (Funding renovations upfront)</option>
+                                    <option value="addition">Home Additions Pitch (Maximize square footage & value)</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="campaign-recipient-email">Recipient / Target Email Address</label>
+                                <input type="email" id="campaign-recipient-email" placeholder="e.g. seller@homemail.com">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="campaign-subject-input">Outbound Subject Line</label>
+                                <input type="text" id="campaign-subject-input" style="background:rgba(255,255,255,0.01);">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="campaign-preview-body">Outbound Email Copy Preview</label>
+                                <textarea id="campaign-preview-body" rows="6" placeholder="Campaign content..." style="background:rgba(255,255,255,0.01); color:white; border:1px solid var(--border-color); border-radius:4px; padding:0.5rem; font-family:inherit; font-size:0.8rem; width:100%; box-sizing:border-box; resize:vertical;"></textarea>
+                            </div>
+
+                            <button class="btn-primary" onclick="triggerOutboundCampaignEmail()" style="width:100%;">
+                                <i data-lucide="send"></i> Launch Drip Email Campaign
+                            </button>
                         </div>
                     </div>
 
@@ -1006,6 +1067,77 @@
                 </div>
                 <button class="btn-danger" onclick="deleteCurrentLead()">Delete Lead</button>
             </div>
+        </div>
+    </div>
+
+    <!-- ================= SUBMIT PURCHASE OFFER MODAL ================= -->
+    <div id="offer-modal" class="drawer-overlay">
+        <div class="drawer-content mini-modal">
+            <div class="drawer-header">
+                <h2>Submit Purchase Offer</h2>
+                <button class="btn-close" onclick="closeOfferModal()"><i data-lucide="x"></i></button>
+            </div>
+            <form id="offer-form" onsubmit="handleSendOffer(event)">
+                <input type="hidden" id="offer-lead-id">
+                <div class="drawer-body">
+                    <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:1rem;" id="offer-property-address">Property: 882 Whispering Pines Dr</p>
+                    <div class="form-group">
+                        <label for="offer-buyer-name">Full Name</label>
+                        <input type="text" id="offer-buyer-name" placeholder="John Doe" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="offer-buyer-email">Email Address</label>
+                        <input type="email" id="offer-buyer-email" placeholder="john@example.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="offer-amount">Offer Price ($ USD)</label>
+                        <input type="number" id="offer-amount" placeholder="e.g. 485000" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="offer-terms">Financing Type</label>
+                        <select id="offer-terms">
+                            <option value="Conventional">Conventional Financing</option>
+                            <option value="Cash">All Cash Offer</option>
+                            <option value="FHA">FHA Loan</option>
+                            <option value="VA">VA Loan</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="drawer-footer">
+                    <button type="submit" class="btn-primary" style="width:100%;">Submit Purchase Offer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ================= SCHEDULE TOUR MODAL ================= -->
+    <div id="tour-modal" class="drawer-overlay">
+        <div class="drawer-content mini-modal">
+            <div class="drawer-header">
+                <h2>Schedule Property Tour</h2>
+                <button class="btn-close" onclick="closeTourModal()"><i data-lucide="x"></i></button>
+            </div>
+            <form id="tour-form" onsubmit="handleSendTour(event)">
+                <input type="hidden" id="tour-lead-id">
+                <div class="drawer-body">
+                    <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:1rem;" id="tour-property-address">Property: 882 Whispering Pines Dr</p>
+                    <div class="form-group">
+                        <label for="tour-buyer-name">Full Name</label>
+                        <input type="text" id="tour-buyer-name" placeholder="John Doe" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="tour-buyer-email">Email Address</label>
+                        <input type="email" id="tour-buyer-email" placeholder="john@example.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="tour-date">Preferred Date & Time</label>
+                        <input type="datetime-local" id="tour-date" required>
+                    </div>
+                </div>
+                <div class="drawer-footer">
+                    <button type="submit" class="btn-primary" style="width:100%;">Schedule Private Tour</button>
+                </div>
+            </form>
         </div>
     </div>
 

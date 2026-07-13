@@ -2930,3 +2930,88 @@ input:checked + .slider-switch::before {
     z-index: 100;
 }
 
+/* ================= MOBILE RESPONSIVE OPTIMIZATIONS (PHONE PORTAL) ================= */
+@media (max-width: 768px) {
+    /* Header modifications */
+    .app-header {
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1rem;
+        align-items: center;
+        text-align: center;
+    }
+    .header-nav {
+        width: 100%;
+        overflow-x: auto;
+        justify-content: center;
+        padding-bottom: 0.5rem;
+    }
+    .nav-tab {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.75rem;
+        white-space: nowrap;
+    }
+    
+    /* Dashboard viewports */
+    .dashboard-topbar {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+    .stats-ribbon {
+        width: 100%;
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .ribbon-item {
+        border-right: none !important;
+        border-bottom: 1px solid var(--border-color);
+        padding: 0.75rem 0.5rem;
+    }
+    
+    /* Subtab bar layout */
+    .dash-subtabs-bar {
+        overflow-x: auto;
+        padding-bottom: 0.5rem;
+        scrollbar-width: none;
+    }
+    .dash-subtabs-bar::-webkit-scrollbar {
+        display: none;
+    }
+    .dash-tab {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.75rem;
+        white-space: nowrap;
+    }
+    
+    /* Make pipeline columns swipeable or stackable */
+    .pipeline-board {
+        display: flex !important;
+        flex-direction: column;
+        gap: 1rem;
+        overflow-x: visible;
+    }
+    .pipeline-col {
+        max-height: none !important;
+    }
+    
+    /* Grid layouts split to 1 column */
+    .map-view-grid, .contractors-grid, .emails-layout, .analytics-grid-kpis, .client-portal-layout, .drawer-grid {
+        grid-template-columns: 1fr !important;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+    
+    /* Detail drawers absolute width stretch */
+    .detail-drawer, .client-portal-content {
+        width: 100% !important;
+        border-left: none !important;
+    }
+    
+    /* SVG Map components scaling */
+    .mock-map svg {
+        width: 100% !important;
+        height: auto !important;
+    }
+}
+
