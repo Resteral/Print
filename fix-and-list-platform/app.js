@@ -334,6 +334,26 @@ document.addEventListener('DOMContentLoaded', () => {
             })
         });
 
+        // Contract Signature Event Dispatch
+        fetch(webhookUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                event: 'contract_signed',
+                leadId: 'lead-sample-123',
+                name: 'Sean',
+                address: '123 Main St',
+                dealType: 'wholesale',
+                signature: {
+                    typedName: 'Sean',
+                    ip: '192.168.1.102',
+                    hash: '183b09cc10ea90b25eb9d70be646b37d6e99fa93a2',
+                    date: new Date().toLocaleString()
+                },
+                timestamp: new Date().toISOString()
+            })
+        });
+
         // Seed logs
         const sampleLog = {
             id: 'log-' + Date.now(),
@@ -1774,6 +1794,28 @@ function submitESignature() {
     // Advance lead automatically to Renovating stage
     lead.stage = 'rehab';
     saveLeadsToStorage();
+
+    // Trigger contract signature webhook if endpoint exists
+    if (apiSettings.emailWebhook) {
+        fetch(apiSettings.emailWebhook, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                event: 'contract_signed',
+                leadId: lead.id,
+                name: lead.name,
+                address: lead.address,
+                dealType: lead.dealType || 'traditional',
+                signature: {
+                    typedName: signatureData.typedName,
+                    ip: signatureData.ip,
+                    hash: signatureData.hash,
+                    date: signatureData.date
+                },
+                timestamp: new Date().toISOString()
+            })
+        }).catch(err => console.error("Error dispatching signature webhook:", err));
+    }
 
     // Trigger Notification
     triggerAutoEmail(lead, 'Contract Signed Notification');
