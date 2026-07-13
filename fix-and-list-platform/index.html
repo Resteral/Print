@@ -10,6 +10,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- EmailJS SDK -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -608,6 +610,68 @@
 
                                 <button class="btn-primary" onclick="publishAdCampaign()" style="width:100%;">
                                     <i data-lucide="rocket"></i> Launch Ad Campaign
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- API & Integration Settings Card -->
+                        <div class="glass-card">
+                            <div class="card-header">
+                                <i data-lucide="plug" class="accent-text"></i>
+                                <h3>API & Integration Settings</h3>
+                            </div>
+                            <div class="card-body settings-body" style="display:flex; flex-direction:column; gap:1.25rem;">
+                                <div class="form-group">
+                                    <label for="api-email-provider">Email Delivery Provider</label>
+                                    <select id="api-email-provider" onchange="toggleApiFields()">
+                                        <option value="sandbox">Simulated Sandbox Mode</option>
+                                        <option value="emailjs">EmailJS Client SDK</option>
+                                        <option value="webhook">Custom Webhook (Zapier/Make/Custom)</option>
+                                    </select>
+                                </div>
+                                
+                                <!-- EmailJS Credentials Form -->
+                                <div id="api-group-emailjs" style="display:none; flex-direction:column; gap:0.75rem;">
+                                    <div class="form-group">
+                                        <label for="api-emailjs-public">EmailJS Public Key</label>
+                                        <input type="text" id="api-emailjs-public" placeholder="e.g. user_xxxxxxxxx" style="background:rgba(255,255,255,0.01); color:white; border:1px solid var(--border-color); border-radius:4px; padding:0.4rem; font-size:0.8rem; width:100%; box-sizing:border-box;">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="api-emailjs-service">EmailJS Service ID</label>
+                                        <input type="text" id="api-emailjs-service" placeholder="e.g. service_xxxxxx" style="background:rgba(255,255,255,0.01); color:white; border:1px solid var(--border-color); border-radius:4px; padding:0.4rem; font-size:0.8rem; width:100%; box-sizing:border-box;">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="api-emailjs-template">EmailJS Template ID</label>
+                                        <input type="text" id="api-emailjs-template" placeholder="e.g. template_xxxxxx" style="background:rgba(255,255,255,0.01); color:white; border:1px solid var(--border-color); border-radius:4px; padding:0.4rem; font-size:0.8rem; width:100%; box-sizing:border-box;">
+                                    </div>
+                                </div>
+
+                                <!-- Email Webhook Form -->
+                                <div id="api-group-email-webhook" style="display:none; flex-direction:column; gap:0.75rem;">
+                                    <div class="form-group">
+                                        <label for="api-email-webhook-url">Email Webhook URL</label>
+                                        <input type="url" id="api-email-webhook-url" placeholder="https://hooks.zapier.com/..." style="background:rgba(255,255,255,0.01); color:white; border:1px solid var(--border-color); border-radius:4px; padding:0.4rem; font-size:0.8rem; width:100%; box-sizing:border-box;">
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="api-ads-provider">Ads Automation Provider</label>
+                                    <select id="api-ads-provider" onchange="toggleApiFields()">
+                                        <option value="sandbox">Simulated Sandbox Mode</option>
+                                        <option value="webhook">Zapier / Make.com Webhook</option>
+                                    </select>
+                                </div>
+
+                                <!-- Ads Webhook Form -->
+                                <div id="api-group-ads-webhook" style="display:none; flex-direction:column; gap:0.75rem;">
+                                    <div class="form-group">
+                                        <label for="api-ads-webhook-url">Ads Webhook URL</label>
+                                        <input type="url" id="api-ads-webhook-url" placeholder="https://hooks.zapier.com/..." style="background:rgba(255,255,255,0.01); color:white; border:1px solid var(--border-color); border-radius:4px; padding:0.4rem; font-size:0.8rem; width:100%; box-sizing:border-box;">
+                                    </div>
+                                </div>
+
+                                <button class="btn-secondary btn-sm" onclick="saveApiSettings()" style="width:100%;">
+                                    <i data-lucide="save"></i> Save API Credentials
                                 </button>
                             </div>
                         </div>

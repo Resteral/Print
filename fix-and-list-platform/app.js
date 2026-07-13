@@ -123,6 +123,15 @@ let contractors = [];
 let adCampaigns = [];
 let emailLogs = [];
 let emailSettings = { autoIntake: true, autoRehab: true, autoContract: true };
+let apiSettings = {
+    emailProvider: 'sandbox',
+    emailjsPublic: '',
+    emailjsService: '',
+    emailjsTemplate: '',
+    emailWebhook: '',
+    adsProvider: 'sandbox',
+    adsWebhook: ''
+};
 let currentSelectedLeadId = null;
 let currentSlideIdx = 1;
 
@@ -189,6 +198,26 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
         emailLogs = [];
         localStorage.setItem('revitalize_email_logs', JSON.stringify(emailLogs));
+    }
+
+    // Load API Settings
+    const savedApiSettings = localStorage.getItem('revitalize_api_settings');
+    if (savedApiSettings) {
+        apiSettings = JSON.parse(savedApiSettings);
+        document.getElementById('api-email-provider').value = apiSettings.emailProvider || 'sandbox';
+        document.getElementById('api-emailjs-public').value = apiSettings.emailjsPublic || '';
+        document.getElementById('api-emailjs-service').value = apiSettings.emailjsService || '';
+        document.getElementById('api-emailjs-template').value = apiSettings.emailjsTemplate || '';
+        document.getElementById('api-email-webhook-url').value = apiSettings.emailWebhook || '';
+        document.getElementById('api-ads-provider').value = apiSettings.adsProvider || 'sandbox';
+        document.getElementById('api-ads-webhook-url').value = apiSettings.adsWebhook || '';
+    }
+    toggleApiFields();
+
+    if (apiSettings.emailProvider === 'emailjs' && apiSettings.emailjsPublic) {
+        if (typeof emailjs !== 'undefined') {
+            emailjs.init({ publicKey: apiSettings.emailjsPublic });
+        }
     }
 
     // Setup toggles in UI
@@ -1171,7 +1200,7 @@ function triggerAutoEmail(lead, type, extraDetail = '') {
     emailLogs.push(log);
     localStorage.setItem('revitalize_email_logs', JSON.stringify(emailLogs));
     
-    showToast(`Email alert sent to ${lead.email}`);
+    dispatchRealEmail(lead.email, subject, body);
     renderEmailLogs();
 }
 
@@ -3385,6 +3414,8 @@ function triggerOutboundCampaignEmail() {
         return;
     }
 
+    dispatchRealEmail(targetEmail, subject, body);
+
     const log = {
         id: 'log-' + Date.now(),
         time: new Date().toLocaleString(),
@@ -3398,7 +3429,6 @@ function triggerOutboundCampaignEmail() {
     localStorage.setItem('revitalize_email_logs', JSON.stringify(emailLogs));
 
     document.getElementById('campaign-recipient-email').value = '';
-    showToast("Marketing drip campaign email dispatched successfully!");
     renderEmailLogs();
 }
 
@@ -3585,6 +3615,8 @@ function publishAdCampaign() {
 
     const lead = leads.find(l => l.id === leadId);
     const addr = lead ? lead.address : "General Outreach";
+    const headline = document.getElementById('ad-headline-input').value.trim();
+    const textCopy = headline || `🚨 Unlocking equity at ${addr}! We fund 100% of renovations upfront. Zero out of pocket, pay only at closing. Swipe up to claim your free evaluation.`;
 
     const newAd = {
         id: 'ad-' + Date.now(),
@@ -3600,7 +3632,37 @@ function publishAdCampaign() {
     saveAdCampaignsToStorage();
     renderAdCampaigns();
 
-    showToast(`Ad campaign successfully deployed on ${channel}!`);
+    // Webhook Ads Integration
+    if (apiSettings.adsProvider === 'webhook') {
+        if (!apiSettings.adsWebhook) {
+            showToast("Error: Ads Webhook URL is missing.");
+        } else {
+            fetch(apiSettings.adsWebhook, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    campaignId: newAd.id,
+                    property: addr,
+                    channel: channel,
+                    budget: budget,
+                    headline: textCopy,
+                    timestamp: new Date().toISOString()
+                })
+            })
+            .then(res => {
+                if (res.ok) {
+                    showToast(`Ad campaign webhook dispatched to Zapier/Make!`);
+                } else {
+                    showToast(`Ads Webhook Error: ${res.status}`);
+                }
+            })
+            .catch(err => {
+                showToast(`Ads Webhook Network Error: ${err.message || err}`);
+            });
+        }
+    } else {
+        showToast(`Ad campaign successfully deployed on ${channel}!`);
+    }
 }
 
 // Start analytics simulation
@@ -3646,3 +3708,90 @@ setInterval(() => {
         updateDashboardStats();
     }
 }, 8000);
+
+function toggleApiFields() {
+    const emailProv = document.getElementById('api-email-provider').value;
+    const adsProv = document.getElementById('api-ads-provider').value;
+
+    document.getElementById('api-group-emailjs').style.display = (emailProv === 'emailjs') ? 'flex' : 'none';
+    document.getElementById('api-group-email-webhook').style.display = (emailProv === 'webhook') ? 'flex' : 'none';
+    document.getElementById('api-group-ads-webhook').style.display = (adsProv === 'webhook') ? 'flex' : 'none';
+}
+
+function saveApiSettings() {
+    apiSettings.emailProvider = document.getElementById('api-email-provider').value;
+    apiSettings.emailjsPublic = document.getElementById('api-emailjs-public').value.trim();
+    apiSettings.emailjsService = document.getElementById('api-emailjs-service').value.trim();
+    apiSettings.emailjsTemplate = document.getElementById('api-emailjs-template').value.trim();
+    apiSettings.emailWebhook = document.getElementById('api-email-webhook-url').value.trim();
+    apiSettings.adsProvider = document.getElementById('api-ads-provider').value;
+    apiSettings.adsWebhook = document.getElementById('api-ads-webhook-url').value.trim();
+
+    localStorage.setItem('revitalize_api_settings', JSON.stringify(apiSettings));
+    
+    if (apiSettings.emailProvider === 'emailjs' && apiSettings.emailjsPublic) {
+        if (typeof emailjs !== 'undefined') {
+            emailjs.init({ publicKey: apiSettings.emailjsPublic });
+        }
+    }
+    showToast("API & Webhook credentials saved successfully!");
+}
+
+function dispatchRealEmail(recipient, subject, body) {
+    if (apiSettings.emailProvider === 'sandbox') {
+        showToast(`Email alert sent to ${recipient} (Sandbox Mode)`);
+        return;
+    }
+
+    if (apiSettings.emailProvider === 'emailjs') {
+        if (typeof emailjs === 'undefined') {
+            showToast("Error: EmailJS library is not loaded.");
+            return;
+        }
+        if (!apiSettings.emailjsService || !apiSettings.emailjsTemplate) {
+            showToast("Error: EmailJS Service ID or Template ID is missing.");
+            return;
+        }
+        
+        const params = {
+            to_email: recipient,
+            subject: subject,
+            message: body
+        };
+
+        emailjs.send(apiSettings.emailjsService, apiSettings.emailjsTemplate, params)
+            .then(() => {
+                showToast(`Real email sent via EmailJS to ${recipient}!`);
+            })
+            .catch(err => {
+                showToast(`EmailJS Error: ${err.text || err}`);
+                console.error("EmailJS Error", err);
+            });
+    } else if (apiSettings.emailProvider === 'webhook') {
+        if (!apiSettings.emailWebhook) {
+            showToast("Error: Custom Email Webhook URL is missing.");
+            return;
+        }
+
+        fetch(apiSettings.emailWebhook, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                recipient: recipient,
+                subject: subject,
+                body: body,
+                timestamp: new Date().toISOString()
+            })
+        })
+        .then(res => {
+            if (res.ok) {
+                showToast(`Email payload sent to Webhook for ${recipient}!`);
+            } else {
+                showToast(`Webhook Error Status: ${res.status}`);
+            }
+        })
+        .catch(err => {
+            showToast(`Webhook Network Error: ${err.message || err}`);
+        });
+    }
+}
