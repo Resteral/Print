@@ -1,3 +1,0 @@
-local Placeholder = {}
-
-return Placeholder
