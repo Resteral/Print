@@ -123,6 +123,7 @@ let contractors = [];
 let adCampaigns = [];
 let emailLogs = [];
 let laborBusinesses = [];
+let contractorChats = [];
 let liveMarketListings = [];
 let workRequests = [];
 let crewAllocations = {};
@@ -376,6 +377,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     } catch (e) {
         console.error("Labor businesses parse error:", e);
+    }
+
+    // Load Contractor Chats
+    try {
+        const savedChats = localStorage.getItem('revitalize_contractor_chats');
+        if (savedChats) {
+            contractorChats = JSON.parse(savedChats);
+        } else {
+            contractorChats = [];
+        }
+    } catch (e) {
+        console.error("Contractor chats parse error:", e);
     }
 
     // Load Homeowner Work Requests
@@ -4872,10 +4885,15 @@ function renderLaborDirectory() {
             <!-- Photos Showcase -->
             ${photosHtml}
 
-            <!-- Expandable reviews drawer button -->
-            <button class="btn-secondary btn-sm" onclick="toggleBizDetailsDrawer('${biz.id}')" style="margin-top:0.75rem; font-size:0.7rem; padding:0.25rem 0.6rem; color:white; display:flex; align-items:center; gap:0.25rem;">
-                <i data-lucide="message-square" style="width:12px;height:12px;"></i> View & Post Reviews / Work Photos
-            </button>
+            <!-- Action buttons -->
+            <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-top:0.75rem;">
+                <button class="btn-secondary btn-sm" onclick="toggleBizDetailsDrawer('${biz.id}')" style="font-size:0.7rem; padding:0.25rem 0.6rem; color:white; display:flex; align-items:center; gap:0.25rem;">
+                    <i data-lucide="message-square" style="width:12px;height:12px;"></i> Reviews & Photos
+                </button>
+                <button class="btn-primary btn-sm" onclick="openDirectMessageModal('${biz.id}', '${biz.name.replace(/'/g, "\\'")}')" style="font-size:0.7rem; padding:0.25rem 0.6rem; display:flex; align-items:center; gap:0.25rem;">
+                    <i data-lucide="send" style="width:12px;height:12px;"></i> Message Contractor
+                </button>
+            </div>
 
             <!-- Expanded Details Drawer -->
             <div id="biz-details-${biz.id}" style="display:none; margin-top:1rem; padding-top:1rem; border-top:1px solid rgba(255,255,255,0.05); flex-direction:column; gap:0.75rem;">
@@ -5084,17 +5102,36 @@ function populateUtoolLeadSelect() {
     if (!select) return;
     select.innerHTML = '';
 
-    if (leads.length === 0) {
-        select.innerHTML = '<option value="">No active listings found</option>';
+    if (leads.length === 0 && contractorChats.length === 0) {
+        select.innerHTML = '<option value="">No active listings or inquiries</option>';
         return;
     }
 
-    leads.forEach(l => {
-        const opt = document.createElement('option');
-        opt.value = l.id;
-        opt.innerText = `${l.address} (Listing File - ${l.name})`;
-        select.appendChild(opt);
-    });
+    // Rehab Leads Optgroup
+    if (leads.length > 0) {
+        const leadGroup = document.createElement('optgroup');
+        leadGroup.label = "Rehab Property Files";
+        leads.forEach(l => {
+            const opt = document.createElement('option');
+            opt.value = l.id;
+            opt.innerText = `${l.address} (Listing File - ${l.name})`;
+            leadGroup.appendChild(opt);
+        });
+        select.appendChild(leadGroup);
+    }
+
+    // Consumer Chats Optgroup
+    if (contractorChats.length > 0) {
+        const chatGroup = document.createElement('optgroup');
+        chatGroup.label = "Consumer Inquiries & Chats";
+        contractorChats.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c.id;
+            opt.innerText = `Inquiry from ${c.consumerName} (${c.bizName})`;
+            chatGroup.appendChild(opt);
+        });
+        select.appendChild(chatGroup);
+    }
 }
 
 function onUtoolLeadSelectChange() {
@@ -5126,6 +5163,66 @@ function renderUtoolDashboard() {
         if (crewTable) crewTable.innerHTML = '<tr><td colspan="4" style="padding:1rem; text-align:center;" class="text-muted">Please create and select a property listing first.</td></tr>';
         if (materialsTable) materialsTable.innerHTML = '<tr><td colspan="5" style="padding:1rem; text-align:center;" class="text-muted">Please select a property listing.</td></tr>';
         if (chatBox) chatBox.innerHTML = '<div style="text-align:center; padding:2rem; font-size:0.75rem; color:var(--text-muted);">No listing selected.</div>';
+        return;
+    }
+
+    if (leadId.startsWith('chat-')) {
+        const chat = contractorChats.find(c => c.id === leadId);
+        if (!chat) return;
+
+        const biz = laborBusinesses.find(b => b.id === chat.bizId);
+        document.getElementById('utool-contractor-webhook').value = (biz && biz.webhook) || 'https://hook.us2.make.com/1ugb4pws46g5xpl97qeicogdpv1zgped';
+
+        if (crewTable) {
+            crewTable.innerHTML = `<tr><td colspan="4" style="padding:1.5rem; text-align:center;" class="text-muted"><i data-lucide="info" style="width:20px;height:20px;margin-bottom:0.5rem;opacity:0.5;display:inline-block;"></i><br>Consumer Inquiry chat file.<br>Crew assignments only apply to Rehab Listing files.</td></tr>`;
+        }
+        document.getElementById('utool-crew-count').innerText = `Crew Disabled`;
+
+        if (materialsTable) {
+            materialsTable.innerHTML = `<tr><td colspan="5" style="padding:1.5rem; text-align:center;" class="text-muted"><i data-lucide="info" style="width:20px;height:20px;margin-bottom:0.5rem;opacity:0.5;display:inline-block;"></i><br>Materials checklist disabled for consumer inquiries.</td></tr>`;
+        }
+
+        document.getElementById('utool-material-cost-display').innerText = '$0';
+        document.getElementById('utool-labor-cost-display').innerText = '$0';
+        document.getElementById('utool-total-spent-display').innerText = '$0';
+        document.getElementById('utool-allocated-budget-display').innerText = '$0';
+        document.getElementById('utool-burn-pct').innerText = '0%';
+        
+        const progressFill = document.getElementById('utool-budget-progress-fill');
+        if (progressFill) progressFill.style.width = '0%';
+
+        chatBox.innerHTML = '';
+        chat.messages.forEach(msg => {
+            const block = document.createElement('div');
+            block.style.padding = '0.4rem 0.6rem';
+            block.style.borderRadius = '4px';
+            block.style.fontSize = '0.75rem';
+            block.style.lineHeight = '1.25';
+            
+            if (msg.sender === 'contractor') {
+                block.style.background = 'rgba(236,72,153,0.08)';
+                block.style.alignSelf = 'flex-end';
+                block.style.border = '1px solid rgba(236,72,153,0.2)';
+                block.style.maxWidth = '85%';
+            } else {
+                block.style.background = 'rgba(255,255,255,0.02)';
+                block.style.alignSelf = 'flex-start';
+                block.style.border = '1px solid var(--border-color)';
+                block.style.maxWidth = '85%';
+            }
+
+            block.innerHTML = `
+                <div style="font-weight:700; color:white; display:flex; justify-content:space-between; gap:1rem; margin-bottom:0.15rem;">
+                    <span>${msg.sender === 'contractor' ? chat.bizName : chat.consumerName}</span>
+                    <span style="font-size:0.6rem; color:var(--text-muted); font-weight:normal;">${msg.timestamp || 'Just now'}</span>
+                </div>
+                <div style="color:var(--text-muted);">${msg.text}</div>
+            `;
+            chatBox.appendChild(block);
+        });
+
+        chatBox.scrollTop = chatBox.scrollHeight;
+        lucide.createIcons();
         return;
     }
 
@@ -5368,10 +5465,42 @@ function sendUtoolOutboundMessage() {
         return;
     }
 
+    const webhookUrl = document.getElementById('utool-contractor-webhook').value.trim();
+
+    if (leadId.startsWith('chat-')) {
+        const chat = contractorChats.find(c => c.id === leadId);
+        if (!chat) return;
+
+        if (webhookUrl) {
+            dispatchContractorWebhook(webhookUrl, {
+                event: 'contractor_reply',
+                business: chat.bizName,
+                consumer: chat.consumerName,
+                message: bodyText,
+                time: new Date().toLocaleString()
+            });
+        }
+
+        chat.messages.push({
+            sender: 'contractor',
+            text: bodyText,
+            timestamp: new Date().toLocaleTimeString()
+        });
+
+        localStorage.setItem('revitalize_contractor_chats', JSON.stringify(contractorChats));
+        document.getElementById('utool-message-input').value = '';
+        renderUtoolDashboard();
+
+        // Refresh consumer modal chat history if open
+        if (document.getElementById('direct-message-modal').style.display === 'flex' && activeMessageBizId === chat.bizId) {
+            renderDirectChatHistory(chat);
+        }
+        showToast("Direct reply sent to consumer!");
+        return;
+    }
+
     const lead = leads.find(l => l.id === leadId);
     if (!lead) return;
-
-    const webhookUrl = document.getElementById('utool-contractor-webhook').value.trim();
 
     // 1. Dispatch POST request directly to contractor custom webhook
     fetch(webhookUrl, {
@@ -5403,6 +5532,30 @@ function sendUtoolOutboundMessage() {
 function simulateInboundEmailResponse() {
     const leadId = document.getElementById('utool-lead-select').value;
     if (!leadId) return;
+
+    if (leadId.startsWith('chat-')) {
+        const chat = contractorChats.find(c => c.id === leadId);
+        if (!chat) return;
+
+        const reply = prompt(`Simulate incoming message from Consumer (${chat.consumerName}):`, "Hi, when are you available to start the work?");
+        if (!reply) return;
+
+        chat.messages.push({
+            sender: 'consumer',
+            text: reply,
+            timestamp: new Date().toLocaleTimeString()
+        });
+
+        localStorage.setItem('revitalize_contractor_chats', JSON.stringify(contractorChats));
+        renderUtoolDashboard();
+
+        // Refresh consumer modal chat history if open
+        if (document.getElementById('direct-message-modal').style.display === 'flex' && activeMessageBizId === chat.bizId) {
+            renderDirectChatHistory(chat);
+        }
+        showToast("Simulated consumer message received!");
+        return;
+    }
 
     const lead = leads.find(l => l.id === leadId);
     if (!lead) return;
@@ -5492,4 +5645,207 @@ Wholesaler / Escrow Coordinator
     document.body.removeChild(element);
 
     showToast("Offline agreement file generated & downloaded!");
+}
+
+// ================= CONSUMER TO CONTRACTOR DIRECT MESSAGING =================
+let activeMessageBizId = '';
+let activeMessageBizName = '';
+
+function openDirectMessageModal(bizId, bizName) {
+    activeMessageBizId = bizId;
+    activeMessageBizName = bizName;
+
+    document.getElementById('dm-modal-title').innerText = `Message ${bizName}`;
+    
+    // Check if chat exists
+    const chat = contractorChats.find(c => c.bizId === bizId);
+    
+    if (chat) {
+        document.getElementById('dm-start-form-section').style.display = 'none';
+        document.getElementById('dm-chat-section').style.display = 'flex';
+        renderDirectChatHistory(chat);
+    } else {
+        document.getElementById('dm-start-form-section').style.display = 'flex';
+        document.getElementById('dm-chat-section').style.display = 'none';
+        
+        // Pre-fill name and email from localStorage if available
+        const savedName = localStorage.getItem('revitalize_consumer_name') || '';
+        const savedEmail = localStorage.getItem('revitalize_consumer_email') || '';
+        const savedPhone = localStorage.getItem('revitalize_consumer_phone') || '';
+        
+        document.getElementById('dm-consumer-name').value = savedName;
+        document.getElementById('dm-consumer-email').value = savedEmail;
+        document.getElementById('dm-consumer-phone').value = savedPhone;
+        document.getElementById('dm-initial-message').value = '';
+    }
+
+    const modal = document.getElementById('direct-message-modal');
+    modal.style.display = 'flex';
+    lucide.createIcons();
+}
+
+function closeDirectMessageModal() {
+    const modal = document.getElementById('direct-message-modal');
+    modal.style.display = 'none';
+}
+
+function renderDirectChatHistory(chat) {
+    const historyContainer = document.getElementById('dm-chat-history');
+    if (!historyContainer) return;
+    historyContainer.innerHTML = '';
+
+    chat.messages.forEach(msg => {
+        const msgDiv = document.createElement('div');
+        msgDiv.style.padding = '0.5rem 0.75rem';
+        msgDiv.style.borderRadius = '8px';
+        msgDiv.style.fontSize = '0.75rem';
+        msgDiv.style.maxWidth = '85%';
+        msgDiv.style.lineHeight = '1.3';
+        msgDiv.style.marginBottom = '0.5rem';
+
+        if (msg.sender === 'consumer') {
+            msgDiv.style.alignSelf = 'flex-end';
+            msgDiv.style.background = 'var(--primary)';
+            msgDiv.style.color = 'white';
+            msgDiv.style.marginLeft = 'auto';
+        } else {
+            msgDiv.style.alignSelf = 'flex-start';
+            msgDiv.style.background = 'rgba(255,255,255,0.08)';
+            msgDiv.style.color = 'white';
+            msgDiv.style.border = '1px solid rgba(255,255,255,0.05)';
+            msgDiv.style.marginRight = 'auto';
+        }
+
+        msgDiv.innerHTML = `
+            <div style="font-weight:700; font-size:0.65rem; opacity:0.8; margin-bottom:0.15rem;">
+                ${msg.sender === 'consumer' ? 'You' : chat.bizName}
+            </div>
+            <div>${msg.text}</div>
+            <div style="font-size:0.55rem; text-align:right; opacity:0.5; margin-top:0.2rem;">${msg.timestamp || 'Just now'}</div>
+        `;
+
+        historyContainer.appendChild(msgDiv);
+    });
+
+    // Auto-scroll
+    historyContainer.scrollTop = historyContainer.scrollHeight;
+}
+
+function startContractorChat() {
+    const name = document.getElementById('dm-consumer-name').value.trim();
+    const email = document.getElementById('dm-consumer-email').value.trim();
+    const phone = document.getElementById('dm-consumer-phone').value.trim();
+    const msg = document.getElementById('dm-initial-message').value.trim();
+
+    if (!name || !email || !msg) {
+        showToast("Please fill in Name, Email, and Message!");
+        return;
+    }
+
+    // Save user info
+    localStorage.setItem('revitalize_consumer_name', name);
+    localStorage.setItem('revitalize_consumer_email', email);
+    localStorage.setItem('revitalize_consumer_phone', phone);
+
+    const newChat = {
+        id: `chat-${Date.now()}`,
+        bizId: activeMessageBizId,
+        bizName: activeMessageBizName,
+        consumerName: name,
+        consumerEmail: email,
+        consumerPhone: phone,
+        messages: [
+            { sender: 'consumer', text: msg, timestamp: new Date().toLocaleTimeString() }
+        ]
+    };
+
+    contractorChats.push(newChat);
+    localStorage.setItem('revitalize_contractor_chats', JSON.stringify(contractorChats));
+
+    // Dispatch webhook to contractor if configured
+    const biz = laborBusinesses.find(b => b.id === activeMessageBizId);
+    if (biz && biz.webhook) {
+        dispatchContractorWebhook(biz.webhook, {
+            event: 'consumer_inquiry',
+            business: biz.name,
+            consumer: name,
+            email: email,
+            phone: phone,
+            message: msg,
+            time: new Date().toLocaleString()
+        });
+    }
+
+    // Switch view
+    document.getElementById('dm-start-form-section').style.display = 'none';
+    document.getElementById('dm-chat-section').style.display = 'flex';
+    
+    renderDirectChatHistory(newChat);
+    showToast(`Message sent to ${activeMessageBizName}!`);
+    
+    // Re-populate select in UTool since we have a new conversation!
+    populateUtoolLeadSelect();
+}
+
+function sendDirectMessage() {
+    const input = document.getElementById('dm-typing-input');
+    const text = input.value.trim();
+    if (!text) return;
+
+    const chat = contractorChats.find(c => c.bizId === activeMessageBizId);
+    if (!chat) return;
+
+    chat.messages.push({
+        sender: 'consumer',
+        text: text,
+        timestamp: new Date().toLocaleTimeString()
+    });
+
+    localStorage.setItem('revitalize_contractor_chats', JSON.stringify(contractorChats));
+    input.value = '';
+
+    // Dispatch webhook
+    const biz = laborBusinesses.find(b => b.id === activeMessageBizId);
+    if (biz && biz.webhook) {
+        dispatchContractorWebhook(biz.webhook, {
+            event: 'consumer_message',
+            business: biz.name,
+            consumer: chat.consumerName,
+            email: chat.consumerEmail,
+            message: text,
+            time: new Date().toLocaleString()
+        });
+    }
+
+    renderDirectChatHistory(chat);
+}
+
+function simulateContractorReply() {
+    const chat = contractorChats.find(c => c.bizId === activeMessageBizId);
+    if (!chat) return;
+
+    const reply = prompt(`Simulate incoming message from ${chat.bizName}:`, "Hi, thank you for reaching out. Yes, we can handle that. Are you free for a call?");
+    if (!reply) return;
+
+    chat.messages.push({
+        sender: 'contractor',
+        text: reply,
+        timestamp: new Date().toLocaleTimeString()
+    });
+
+    localStorage.setItem('revitalize_contractor_chats', JSON.stringify(contractorChats));
+    renderDirectChatHistory(chat);
+    showToast(`Received reply from ${chat.bizName}`);
+}
+
+function dispatchContractorWebhook(url, payload) {
+    console.log("Dispatching contractor webhook payload to:", url, payload);
+    fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    })
+    .catch(err => {
+        console.error("Contractor webhook error:", err);
+    });
 }
