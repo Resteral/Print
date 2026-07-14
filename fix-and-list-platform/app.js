@@ -141,7 +141,7 @@ let apiSettings = {
     emailWebhook: 'https://hook.us2.make.com/pr1l0jvjtuto0qikljvjkrr82jtttmz1',
     adsProvider: 'webhook',
     adsWebhook: 'https://hook.us2.make.com/pr1l0jvjtuto0qikljvjkrr82jtttmz1',
-    supabaseUrl: '',
+    supabaseUrl: 'https://qlludfnlvqdalaztkenk.supabase.co',
     supabaseKey: ''
 };
 let currentSelectedLeadId = null;
@@ -443,6 +443,10 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error("UTool parse error:", e);
     }
 
+    if (!apiSettings.supabaseUrl) {
+        apiSettings.supabaseUrl = 'https://qlludfnlvqdalaztkenk.supabase.co';
+    }
+
     document.getElementById('api-email-provider').value = apiSettings.emailProvider || 'webhook';
     document.getElementById('api-emailjs-public').value = apiSettings.emailjsPublic || '';
     document.getElementById('api-emailjs-service').value = apiSettings.emailjsService || '';
@@ -450,7 +454,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('api-email-webhook-url').value = apiSettings.emailWebhook || 'https://hook.us2.make.com/pr1l0jvjtuto0qikljvjkrr82jtttmz1';
     document.getElementById('api-ads-provider').value = apiSettings.adsProvider || 'webhook';
     document.getElementById('api-ads-webhook-url').value = apiSettings.adsWebhook || 'https://hook.us2.make.com/pr1l0jvjtuto0qikljvjkrr82jtttmz1';
-    document.getElementById('api-supabase-url').value = apiSettings.supabaseUrl || '';
+    document.getElementById('api-supabase-url').value = apiSettings.supabaseUrl;
     document.getElementById('api-supabase-key').value = apiSettings.supabaseKey || '';
     
     toggleApiFields();
