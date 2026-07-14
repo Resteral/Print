@@ -154,7 +154,7 @@ let sigDrawing = false;
 let sigMode = 'draw';
 
 // Initialize App
-document.addEventListener('DOMContentLoaded', () => {
+function initApp() {
     // Load leads
     try {
         const savedLeads = localStorage.getItem('revitalize_leads');
@@ -622,7 +622,13 @@ document.addEventListener('DOMContentLoaded', () => {
     renderContractorList();
     renderEmailLogs();
     updateDashboardStats();
-});
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initApp);
+} else {
+    initApp();
+}
 
 function saveLeadsToStorage() { localStorage.setItem('revitalize_leads', JSON.stringify(leads)); }
 function saveContractorsToStorage() { localStorage.setItem('revitalize_contractors', JSON.stringify(contractors)); }
