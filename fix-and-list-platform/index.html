@@ -242,7 +242,16 @@
 
                         <div class="form-group">
                             <label for="property-notes">Other General Repairs / Condition Notes</label>
-                            <textarea id="property-notes" rows="2" placeholder="Describe any other repairs needed (e.g. HVAC serving, roof shingle patch)..."></textarea>
+                            <textarea id="property-notes" rows="2" placeholder="Describe any other repairs needed (e.g. HVAC serving, roof shingle patch)..." style="width:100%; box-sizing:border-box; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); border-radius:4px; padding:0.4rem; color:white; font-family:inherit;"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="property-timeline">Target Start Timeline</label>
+                            <select id="property-timeline" style="background:rgba(0,0,0,0.3); color:white; border:1px solid var(--border-color); padding:0.4rem; border-radius:4px; font-size:0.8rem; width:100%; box-sizing:border-box;">
+                                <option value="Immediate (1-2 weeks)" selected>Immediate (1-2 weeks)</option>
+                                <option value="Within 1 Month">Within 1 Month</option>
+                                <option value="Within 3 Months">Within 3 Months</option>
+                                <option value="Flexible / Planning">Flexible / Planning</option>
+                            </select>
                         </div>
                         <div class="form-check-group">
                             <input type="checkbox" id="allow-emails-checkbox" checked>
@@ -507,7 +516,16 @@
                             </div>
                             <div class="form-group">
                                 <label for="job-budget">Target Budget ($ USD)</label>
-                                <input type="number" id="job-budget" required placeholder="e.g. 1500">
+                                <input type="number" id="job-budget" required placeholder="e.g. 1500" style="width:100%; box-sizing:border-box; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); border-radius:4px; padding:0.4rem; color:white;">
+                            </div>
+                            <div class="form-group">
+                                <label for="job-timeline">Target Start Timeline</label>
+                                <select id="job-timeline" style="background:rgba(0,0,0,0.3); color:white; border:1px solid var(--border-color); padding:0.4rem; border-radius:4px; font-size:0.8rem; width:100%; box-sizing:border-box;">
+                                    <option value="Immediate (1-2 weeks)" selected>Immediate (1-2 weeks)</option>
+                                    <option value="Within 1 Month">Within 1 Month</option>
+                                    <option value="Within 3 Months">Within 3 Months</option>
+                                    <option value="Flexible / Planning">Flexible / Planning</option>
+                                </select>
                             </div>
                             <div class="form-group">
                                 <label for="job-desc">Work Description / Details</label>
@@ -1866,6 +1884,18 @@
                             <button class="btn-primary" onclick="launchClientESign()"><i data-lucide="pen-tool"></i> View & Execute Agreement</button>
                         </div>
 
+                        <!-- Contractor Bids Received -->
+                        <div class="sub-card" id="client-bids-card" style="margin-top: 1.5rem; display:block; border-color:rgba(245,158,11,0.25);">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+                                <h3 style="margin:0;"><i data-lucide="gavel" class="accent-text" style="width:18px;height:18px;vertical-align:middle;margin-right:0.25rem;"></i> Contractor Project Proposals</h3>
+                                <span class="badge" style="background:rgba(245,158,11,0.1); color:#f59e0b; border:1px solid rgba(245,158,11,0.2);" id="client-bids-count">0 Bids</span>
+                            </div>
+                            <p class="section-desc">Vetted local contractors bidding on your required renovations. Accept bids to assign them to your team.</p>
+                            <div id="client-bids-list" style="display:flex; flex-direction:column; gap:0.75rem; margin-top:1rem;">
+                                <!-- Dynamic bids list -->
+                            </div>
+                        </div>
+
                         <!-- Progress timeline checklists -->
                         <div class="sub-card" id="client-rehab-card">
                             <h3>Construction Checklist & Status</h3>
@@ -1992,9 +2022,51 @@
         </div>
     </div>
 
+    <!-- ================= PLACE BID MODAL ================= -->
+    <div id="place-bid-modal" class="drawer-overlay" style="display:none; align-items:center; justify-content:center; z-index:2000;">
+        <div class="drawer-content mini-modal" style="max-width:450px; width:95%;">
+            <div class="drawer-header">
+                <h2>Submit Contractor Bid</h2>
+                <button class="btn-close" onclick="closePlaceBidModal()"><i data-lucide="x"></i></button>
+            </div>
+            <form id="place-bid-form" onsubmit="handleBidSubmit(event)">
+                <input type="hidden" id="bid-request-id">
+                <div class="drawer-body" style="display:flex; flex-direction:column; gap:1rem;">
+                    <p style="font-size:0.75rem; color:var(--text-muted); margin:0;" id="bid-project-address">Property Address: --</p>
+                    
+                    <div class="form-group">
+                        <label for="bid-contractor-select">Select Your Business Profile</label>
+                        <select id="bid-contractor-select" style="background:rgba(0,0,0,0.3); color:white; border:1px solid var(--border-color); padding:0.4rem; border-radius:4px; font-size:0.8rem; width:100%; box-sizing:border-box;">
+                            <!-- Populated dynamically with registered contractors -->
+                        </select>
+                    </div>
+
+                    <div class="form-row" style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem;">
+                        <div class="form-group">
+                            <label for="bid-amount">Bid Amount ($ USD)</label>
+                            <input type="number" id="bid-amount" placeholder="e.g. 1200" required style="width:100%; box-sizing:border-box; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); border-radius:4px; padding:0.4rem; color:white;">
+                        </div>
+                        <div class="form-group">
+                            <label for="bid-days">Estimated Days</label>
+                            <input type="number" id="bid-days" placeholder="e.g. 4" required style="width:100%; box-sizing:border-box; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); border-radius:4px; padding:0.4rem; color:white;">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="bid-message">Proposal / Cover Letter</label>
+                        <textarea id="bid-message" rows="3" required placeholder="Explain your pricing, materials you will bring, crew experience, etc..." style="width:100%; box-sizing:border-box; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); border-radius:4px; padding:0.4rem; color:white; font-family:inherit;"></textarea>
+                    </div>
+                </div>
+                <div class="drawer-footer" style="margin-top:1rem;">
+                    <button type="submit" class="btn-primary" style="width:100%;">Submit Proposal Bid</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Notification Toast -->
     <div id="toast" class="toast">Lead successfully created!</div>
 
-    <script src="app.js?v=27"></script>
+    <script src="app.js?v=28"></script>
 </body>
 </html>

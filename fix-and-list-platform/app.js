@@ -674,6 +674,8 @@ function handleSignup(event) {
         }
     });
 
+    const timeline = document.getElementById('property-timeline').value;
+
     const newLead = {
         id: `lead-${Date.now()}`,
         name,
@@ -688,11 +690,31 @@ function handleSignup(event) {
         scope: selectedScopes.length > 0 ? selectedScopes : defaultScope,
         workExplanations: workExplanations,
         dispatches: {},
-        completedSubtasks: []
+        completedSubtasks: [],
+        timeline: timeline,
+        bids: []
     };
 
     leads.push(newLead);
     saveLeadsToStorage();
+
+    // Create a corresponding work request so contractors can see it on the bidding board
+    const newRequest = {
+        id: `req-lead-${newLead.id}`,
+        leadId: newLead.id,
+        address: address,
+        trade: selectedScopes.join(', ') || 'General Rehab',
+        budget: Math.round(defaultARV - asIsValue) || 40000,
+        desc: `Renovation Scope: ${selectedScopes.join(', ') || 'General cosmic refresh'}. Condition notes: ${notes}`,
+        owner: name,
+        email: email,
+        timeline: timeline,
+        timestamp: new Date().toLocaleString(),
+        isLeadProject: true
+    };
+    workRequests.unshift(newRequest);
+    localStorage.setItem('revitalize_work_requests', JSON.stringify(workRequests));
+    renderJobRequestsFeed();
 
     triggerAutoEmail(newLead, 'Intake Confirmation');
 
@@ -796,6 +818,7 @@ function openClientPortal(leadId) {
 
     // Contractors list
     renderClientContractors(lead);
+    renderClientBids(lead);
 
     const clientModal = document.getElementById('client-portal-modal');
     clientModal.style.display = 'flex';
@@ -5041,6 +5064,7 @@ function handleHomeownerJobSubmit(event) {
     const desc = document.getElementById('job-desc').value.trim();
     const owner = document.getElementById('job-owner').value.trim();
     const email = document.getElementById('job-email').value.trim();
+    const timeline = document.getElementById('job-timeline').value;
 
     const newRequest = {
         id: `req-${Date.now()}`,
@@ -5050,6 +5074,8 @@ function handleHomeownerJobSubmit(event) {
         desc: desc,
         owner: owner,
         email: email,
+        timeline: timeline,
+        bids: [],
         timestamp: new Date().toLocaleString()
     };
 
@@ -5080,20 +5106,24 @@ function renderJobRequestsFeed() {
         div.style.padding = '0.75rem';
         div.style.fontSize = '0.75rem';
 
+        const bidCount = req.bids ? req.bids.length : 0;
+
         div.innerHTML = `
             <div style="display:flex; justify-content:space-between; font-weight:700; color:white; margin-bottom:0.25rem;">
                 <span style="font-size:0.8rem;">${req.address}</span>
-                <span class="text-success">$${req.budget} Budget</span>
+                <span class="text-success">$${req.budget.toLocaleString()} Budget</span>
             </div>
-            <div style="font-weight:600; color:var(--warning); text-transform:capitalize; margin-bottom:0.4rem;">Required: ${req.trade}</div>
+            <div style="font-weight:600; color:var(--warning); text-transform:capitalize; margin-bottom:0.25rem;">Required Trade: ${req.trade}</div>
+            <div style="font-size:0.7rem; color:var(--primary); font-weight:700; margin-bottom:0.4rem;">Timeline: ${req.timeline || 'Flexible / Planning'}</div>
             <p style="color:var(--text-muted); margin:0 0 0.5rem 0; line-height:1.2;">"${req.desc}"</p>
-            <div style="display:flex; justify-content:space-between; color:var(--text-muted); font-size:0.7rem; border-top:1px solid rgba(255,255,255,0.03); padding-top:0.4rem;">
-                <span>Posted: ${req.timestamp}</span>
-                <span>By: ${req.owner}</span>
+            <div style="display:flex; justify-content:space-between; color:var(--text-muted); font-size:0.7rem; border-top:1px solid rgba(255,255,255,0.03); padding-top:0.4rem; align-items:center;">
+                <span>By: ${req.owner} • ${bidCount} Bids</span>
+                <button class="btn-primary" onclick="openPlaceBidModal('${req.id}')" style="font-size:0.65rem; padding:0.2rem 0.5rem; display:flex; align-items:center; gap:2px;"><i data-lucide="gavel" style="width:10px;height:10px;"></i> Place Bid</button>
             </div>
         `;
         feed.appendChild(div);
     });
+    lucide.createIcons();
 }
 
 // ================= UTOOL CONTRACTOR SUITE LOGIC =================
@@ -5848,4 +5878,260 @@ function dispatchContractorWebhook(url, payload) {
     .catch(err => {
         console.error("Contractor webhook error:", err);
     });
+}
+
+// ================= CONTRACTOR BIDDING SYSTEM LOGIC =================
+function openPlaceBidModal(requestId) {
+    const req = workRequests.find(r => r.id === requestId);
+    if (!req) return;
+
+    document.getElementById('bid-request-id').value = requestId;
+    document.getElementById('bid-project-address').innerText = `Property Address: ${req.address} (Required Trade: ${req.trade})`;
+
+    // Populate contractor select dropdown
+    const select = document.getElementById('bid-contractor-select');
+    if (select) {
+        select.innerHTML = '';
+        if (laborBusinesses.length === 0) {
+            select.innerHTML = '<option value="">No registered contractors found. Please register a contractor profile first.</option>';
+        } else {
+            laborBusinesses.forEach(biz => {
+                const opt = document.createElement('option');
+                opt.value = biz.id;
+                opt.innerText = `${biz.name} (${biz.trade.toUpperCase()} • Rate: $${biz.rate}/hr)`;
+                select.appendChild(opt);
+            });
+        }
+    }
+
+    const modal = document.getElementById('place-bid-modal');
+    modal.style.display = 'flex';
+    lucide.createIcons();
+}
+
+function closePlaceBidModal() {
+    const modal = document.getElementById('place-bid-modal');
+    modal.style.display = 'none';
+}
+
+function handleBidSubmit(event) {
+    event.preventDefault();
+    const requestId = document.getElementById('bid-request-id').value;
+    const contractorId = document.getElementById('bid-contractor-select').value;
+    const amount = parseInt(document.getElementById('bid-amount').value) || 0;
+    const days = parseInt(document.getElementById('bid-days').value) || 1;
+    const msg = document.getElementById('bid-message').value.trim();
+
+    if (!contractorId) {
+        showToast("Please register a contractor profile first!");
+        return;
+    }
+
+    const req = workRequests.find(r => r.id === requestId);
+    if (!req) return;
+
+    const biz = laborBusinesses.find(b => b.id === contractorId);
+    if (!biz) return;
+
+    const newBid = {
+        id: `bid-${Date.now()}`,
+        contractorId: contractorId,
+        contractorName: biz.name,
+        contractorRating: biz.rating || 4.8,
+        amount: amount,
+        days: days,
+        message: msg,
+        timestamp: new Date().toLocaleString(),
+        status: 'pending'
+    };
+
+    // If it's linked to a lead project, save it to the lead too
+    if (req.leadId) {
+        const lead = leads.find(l => l.id === req.leadId);
+        if (lead) {
+            if (!lead.bids) lead.bids = [];
+            lead.bids.push(newBid);
+            saveLeadsToStorage();
+        }
+    } else {
+        // Save to temporary lead bids if they look up a direct request address
+        // We find or create a mock lead so the Client Dashboard works for this address too!
+        let lead = leads.find(l => l.address.toLowerCase() === req.address.toLowerCase());
+        if (!lead) {
+            lead = {
+                id: `lead-req-${req.id}`,
+                name: req.owner,
+                email: req.email,
+                phone: '(555) 000-0000',
+                address: req.address,
+                asIsValue: 250000,
+                targetARV: 310000,
+                stage: 'intake',
+                scope: [req.trade],
+                bids: [],
+                timeline: req.timeline || 'Flexible'
+            };
+            leads.push(lead);
+            saveLeadsToStorage();
+        }
+        if (!lead.bids) lead.bids = [];
+        lead.bids.push(newBid);
+        saveLeadsToStorage();
+    }
+
+    if (!req.bids) req.bids = [];
+    req.bids.push(newBid);
+    localStorage.setItem('revitalize_work_requests', JSON.stringify(workRequests));
+
+    closePlaceBidModal();
+    document.getElementById('place-bid-form').reset();
+    showToast(`Bid submitted successfully from ${biz.name}!`);
+    renderJobRequestsFeed();
+}
+
+function renderClientBids(lead) {
+    const bidsList = document.getElementById('client-bids-list');
+    const bidsCount = document.getElementById('client-bids-count');
+    if (!bidsList) return;
+
+    bidsList.innerHTML = '';
+    const bids = lead.bids || [];
+    if (bidsCount) bidsCount.innerText = `${bids.length} Bids`;
+
+    if (bids.length === 0) {
+        bidsList.innerHTML = '<div style="text-align:center; font-size:0.75rem; color:var(--text-muted); padding:1rem;">Waiting for contractor proposals...</div>';
+        return;
+    }
+
+    bids.forEach((bid, idx) => {
+        const div = document.createElement('div');
+        div.style.background = 'rgba(255,255,255,0.02)';
+        div.style.border = '1px solid var(--border-color)';
+        div.style.borderRadius = '4px';
+        div.style.padding = '0.75rem';
+        div.style.display = 'flex';
+        div.style.flexDirection = 'column';
+        div.style.gap = '0.5rem';
+
+        if (bid.status === 'accepted') {
+            div.style.borderColor = 'var(--success)';
+            div.style.background = 'rgba(16,185,129,0.03)';
+        }
+
+        const statusBadge = bid.status === 'accepted'
+            ? `<span class="badge success" style="margin-left:auto; background:rgba(16,185,129,0.15); color:var(--success); border:1px solid rgba(16,185,129,0.3); font-size:0.65rem; padding:0.15rem 0.4rem; border-radius:4px; display:inline-flex; align-items:center; gap:2px;"><i data-lucide="check" style="width:10px;height:10px;"></i> Accepted</span>`
+            : '';
+
+        div.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
+                <div>
+                    <h4 style="margin:0; font-size:0.85rem; color:white; font-weight:700; display:flex; align-items:center; gap:4px;">
+                        <span>${bid.contractorName}</span>
+                        <span style="color:var(--warning); font-size:0.75rem;">★ ${bid.contractorRating}</span>
+                    </h4>
+                    <span style="font-size:0.7rem; color:var(--text-muted);">Submitted: ${bid.timestamp}</span>
+                </div>
+                <div style="text-align:right;">
+                    <div style="font-size:0.95rem; font-weight:800; color:var(--success);">$${bid.amount.toLocaleString()}</div>
+                    <span style="font-size:0.7rem; color:var(--text-muted);">${bid.days} Days Est.</span>
+                </div>
+                ${statusBadge}
+            </div>
+            <p style="margin:0; font-size:0.75rem; color:var(--text-muted); line-height:1.3; font-style:italic;">"${bid.message}"</p>
+            <div style="display:flex; gap:0.5rem; border-top:1px solid rgba(255,255,255,0.03); padding-top:0.5rem; margin-top:0.25rem;">
+                <button class="btn-secondary" onclick="viewBidContractorProfile('${bid.contractorId}')" style="font-size:0.7rem; padding:0.25rem 0.6rem; color:white; flex-grow:1; display:flex; justify-content:center; align-items:center; gap:2px; background:rgba(255,255,255,0.02); border-color:var(--border-color);">
+                    <i data-lucide="user" style="width:12px;height:12px;"></i> View Profile & Photos
+                </button>
+                ${bid.status !== 'accepted' ? `
+                <button class="btn-primary" onclick="acceptContractorBid('${lead.id}', ${idx})" style="font-size:0.7rem; padding:0.25rem 0.6rem; flex-grow:1; display:flex; justify-content:center; align-items:center; gap:2px;">
+                    <i data-lucide="check" style="width:12px;height:12px;"></i> Accept Bid
+                </button>` : ''}
+            </div>
+        `;
+        bidsList.appendChild(div);
+    });
+    lucide.createIcons();
+}
+
+function viewBidContractorProfile(contractorId) {
+    const biz = laborBusinesses.find(b => b.id === contractorId);
+    if (!biz) return;
+
+    // Close client portal
+    closeClientPortal();
+
+    // Switch to Labor view
+    switchView('labor');
+
+    // Filter by this trade to show the business card
+    const tradeFilter = document.getElementById('directory-filter-trade');
+    if (tradeFilter) {
+        tradeFilter.value = biz.trade;
+        renderLaborDirectory();
+    }
+
+    // Scroll to the card and flash it
+    setTimeout(() => {
+        const card = document.getElementById(`biz-details-${contractorId}`);
+        if (card) {
+            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            // Open details drawer
+            const drawer = document.getElementById(`biz-details-${contractorId}`);
+            if (drawer && drawer.style.display === 'none') {
+                toggleBizDetailsDrawer(contractorId);
+            }
+            
+            // Flash styling
+            const cardParent = drawer.parentElement;
+            if (cardParent) {
+                const originalBorder = cardParent.style.borderColor;
+                cardParent.style.borderColor = 'var(--primary)';
+                cardParent.style.boxShadow = '0 0 15px var(--primary)';
+                setTimeout(() => {
+                    cardParent.style.borderColor = originalBorder;
+                    cardParent.style.boxShadow = 'none';
+                }, 1500);
+            }
+        }
+    }, 400);
+}
+
+function acceptContractorBid(leadId, bidIdx) {
+    const lead = leads.find(l => l.id === leadId);
+    if (!lead) return;
+
+    const bids = lead.bids || [];
+    const bid = bids[bidIdx];
+    if (!bid) return;
+
+    // Reset status of all other bids to pending
+    bids.forEach(b => b.status = 'pending');
+    bid.status = 'accepted';
+
+    // Update lead stage to 'rehab' or keep in progress
+    lead.stage = 'rehab';
+    saveLeadsToStorage();
+
+    // Dynamically assign this contractor to the crew lists in UTool
+    const contractor = laborBusinesses.find(b => b.id === bid.contractorId);
+    if (contractor) {
+        if (!crewAllocations[leadId]) {
+            crewAllocations[leadId] = [];
+        }
+        
+        // Remove existing allocations of same trade to prevent duplicates
+        crewAllocations[leadId] = crewAllocations[leadId].filter(c => c.trade !== contractor.trade);
+        
+        // Assign accepted contractor
+        crewAllocations[leadId].push({
+            name: contractor.name,
+            trade: contractor.trade,
+            rate: contractor.rate
+        });
+        localStorage.setItem('revitalize_crew_allocations', JSON.stringify(crewAllocations));
+    }
+
+    renderClientBids(lead);
+    showToast(`Bid accepted! ${bid.contractorName} assigned to project team.`);
 }
