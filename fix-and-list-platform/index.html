@@ -590,9 +590,12 @@
                     <i data-lucide="folder-open" class="accent-text"></i>
                     <h3 style="margin:0;">Select Active Job / Property File</h3>
                 </div>
-                <select id="utool-lead-select" onchange="onUtoolLeadSelectChange()" style="background:rgba(0,0,0,0.3); color:white; border:1px solid var(--border-color); padding:0.5rem; border-radius:4px; font-size:0.85rem; width:300px;">
-                    <!-- Populated dynamically with leads -->
-                </select>
+                <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap;">
+                    <select id="utool-lead-select" onchange="onUtoolLeadSelectChange()" style="background:rgba(0,0,0,0.3); color:white; border:1px solid var(--border-color); padding:0.5rem; border-radius:4px; font-size:0.85rem; width:260px;">
+                        <!-- Populated dynamically with leads -->
+                    </select>
+                    <button class="btn-primary btn-sm" onclick="openCreateJobManualModal()" style="font-size:0.75rem; padding:0.5rem 0.8rem; display:flex; align-items:center; gap:4px;"><i data-lucide="plus" style="width:14px;height:14px;"></i> Create Job File</button>
+                </div>
             </div>
 
             <div style="display:grid; grid-template-columns: 2fr 1fr; gap:2rem; margin-top:2rem;">
@@ -2262,9 +2265,86 @@
         </div>
     </div>
 
+    <!-- ================= MANUAL JOB CREATION MODAL ================= -->
+    <div id="utool-create-job-modal" class="drawer-overlay" style="display:none; align-items:center; justify-content:center; z-index:2000;">
+        <div class="drawer-content mini-modal" style="max-width:500px; width:95%; max-height:90vh; overflow-y:auto; padding:1.5rem;">
+            <div class="drawer-header" style="padding-bottom:0.75rem; border-bottom:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center;">
+                <h2>Create Rehab Job File Manually</h2>
+                <button class="btn-close" onclick="closeCreateJobManualModal()"><i data-lucide="x"></i></button>
+            </div>
+            
+            <form id="utool-create-job-form" onsubmit="handleCreateJobManualSubmit(event)">
+                <div class="drawer-body" style="display:flex; flex-direction:column; gap:0.75rem; margin-top:1rem;">
+                    <div class="form-group">
+                        <label for="utool-manual-address">Property Address <span style="color:var(--danger);">*</span></label>
+                        <input type="text" id="utool-manual-address" required placeholder="e.g. 504 Cedar Rd, Metro City" style="width:100%; box-sizing:border-box; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); border-radius:4px; padding:0.4rem; color:white;">
+                    </div>
+
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem;">
+                        <div class="form-group">
+                            <label for="utool-manual-name">Client Name <span style="color:var(--danger);">*</span></label>
+                            <input type="text" id="utool-manual-name" required placeholder="Jane Doe" style="width:100%; box-sizing:border-box; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); border-radius:4px; padding:0.4rem; color:white;">
+                        </div>
+                        <div class="form-group">
+                            <label for="utool-manual-email">Client Email <span style="color:var(--danger);">*</span></label>
+                            <input type="email" id="utool-manual-email" required placeholder="jane@example.com" style="width:100%; box-sizing:border-box; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); border-radius:4px; padding:0.4rem; color:white;">
+                        </div>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem;">
+                        <div class="form-group">
+                            <label for="utool-manual-asis">As-Is Value ($ USD) <span style="color:var(--danger);">*</span></label>
+                            <input type="number" id="utool-manual-asis" required placeholder="e.g. 200000" style="width:100%; box-sizing:border-box; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); border-radius:4px; padding:0.4rem; color:white;">
+                        </div>
+                        <div class="form-group">
+                            <label for="utool-manual-arv">Target ARV ($ USD) <span style="color:var(--danger);">*</span></label>
+                            <input type="number" id="utool-manual-arv" required placeholder="e.g. 300000" style="width:100%; box-sizing:border-box; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); border-radius:4px; padding:0.4rem; color:white;">
+                        </div>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem;">
+                        <div class="form-group">
+                            <label for="utool-manual-budget">Estimated Budget ($ USD) <span style="color:var(--danger);">*</span></label>
+                            <input type="number" id="utool-manual-budget" required placeholder="e.g. 45000" style="width:100%; box-sizing:border-box; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); border-radius:4px; padding:0.4rem; color:white;">
+                        </div>
+                        <div class="form-group">
+                            <label for="utool-manual-timeline">Est. Timeline <span style="color:var(--danger);">*</span></label>
+                            <input type="text" id="utool-manual-timeline" required placeholder="e.g. 30 Days" style="width:100%; box-sizing:border-box; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); border-radius:4px; padding:0.4rem; color:white;">
+                        </div>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns:1fr; gap:0.5rem;">
+                        <div class="form-group">
+                            <label for="utool-manual-trade">Primary Trade Required</label>
+                            <select id="utool-manual-trade" style="background:rgba(0,0,0,0.3); color:white; border:1px solid var(--border-color); padding:0.4rem; border-radius:4px; font-size:0.8rem; width:100%; box-sizing:border-box;">
+                                <option value="plumbing">Plumbing</option>
+                                <option value="electrician">Electrician</option>
+                                <option value="carpentry">Carpentry</option>
+                                <option value="hvac">HVAC</option>
+                                <option value="painting">Painting</option>
+                                <option value="landscaping">Landscaping</option>
+                                <option value="specialists">Specialist / Other</option>
+                                <option value="construction">General Labor</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="utool-manual-photo">Before Photo (Property Image URL)</label>
+                        <input type="url" id="utool-manual-photo" placeholder="https://images.unsplash.com/..." style="width:100%; box-sizing:border-box; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); border-radius:4px; padding:0.4rem; color:white;">
+                    </div>
+                </div>
+
+                <div class="drawer-footer" style="margin-top:1.5rem;">
+                    <button type="submit" class="btn-primary" style="width:100%;">Create & Select Job File</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Notification Toast -->
     <div id="toast" class="toast">Lead successfully created!</div>
 
-    <script src="app.js?v=34"></script>
+    <script src="app.js?v=35"></script>
 </body>
 </html>
