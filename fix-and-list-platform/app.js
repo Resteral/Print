@@ -127,6 +127,7 @@ let contractorChats = [];
 let currentUser = null;
 let supabaseClient = null;
 let liveMarketListings = [];
+let emailQueue = [];
 let workRequests = [];
 let crewAllocations = {};
 let materialsLists = {};
@@ -250,6 +251,19 @@ function initApp() {
         console.error("Email logs parse error, resetting...", e);
         emailLogs = [];
         localStorage.setItem('revitalize_email_logs', JSON.stringify(emailLogs));
+    }
+
+    // Load Email Queue
+    try {
+        const savedQueue = localStorage.getItem('revitalize_email_queue');
+        if (savedQueue) {
+            emailQueue = JSON.parse(savedQueue);
+        } else {
+            emailQueue = [];
+        }
+    } catch (e) {
+        console.error("Email queue parse error:", e);
+        emailQueue = [];
     }
 
     // Load API Settings
@@ -622,6 +636,7 @@ function initApp() {
     renderContractorList();
     renderEmailLogs();
     updateDashboardStats();
+    renderEmailQueue();
 }
 
 if (document.readyState === 'loading') {
@@ -1485,12 +1500,20 @@ function renderProspectsList() {
 
     prospects.forEach(prop => {
         const inPipeline = leads.some(l => l.address.toLowerCase().includes(prop.address.toLowerCase()));
+        const inQueue = emailQueue.some(eq => eq.address.toLowerCase() === prop.address.toLowerCase());
         const item = document.createElement('div');
         item.className = 'prospect-item';
         
-        const btnHtml = inPipeline
-            ? `<button class="added"><i data-lucide="check"></i> Added</button>`
-            : `<button onclick="importProspectToLead('${prop.id}')"><i data-lucide="plus"></i> Import</button>`;
+        const queueBtnHtml = inQueue
+            ? `<button class="btn-success btn-xs" onclick="toggleEmailQueue('${prop.id}', 'prospect')" style="font-size:0.65rem; padding:0.15rem 0.35rem; color:white; border-radius:4px; display:flex; align-items:center; gap:2px; cursor:pointer;"><i data-lucide="mail-check" style="width:10px;height:10px;"></i> Queued</button>`
+            : `<button class="btn-secondary btn-xs" onclick="toggleEmailQueue('${prop.id}', 'prospect')" style="font-size:0.65rem; padding:0.15rem 0.35rem; color:white; border-radius:4px; display:flex; align-items:center; gap:2px; cursor:pointer;"><i data-lucide="mail-plus" style="width:10px;height:10px;"></i> Queue Email</button>`;
+
+        const btnHtml = `
+            <div style="display:flex; flex-direction:column; gap:0.25rem; align-items:flex-end;">
+                ${inPipeline ? `<button class="added" style="font-size:0.65rem; padding:0.15rem 0.35rem; border-radius:4px;"><i data-lucide="check" style="width:10px;height:10px;"></i> Added</button>` : `<button onclick="importProspectToLead('${prop.id}')" style="font-size:0.65rem; padding:0.15rem 0.35rem; border-radius:4px; cursor:pointer;"><i data-lucide="plus" style="width:10px;height:10px;"></i> Import</button>`}
+                ${queueBtnHtml}
+            </div>
+        `;
 
         const domTag = prop.dom 
             ? `<span style="font-size:0.6rem; padding:0.1rem 0.3rem; border-radius:4px; margin-left:0.5rem; background:${prop.dom > 180 ? 'rgba(239,68,68,0.15)' : 'rgba(245,158,11,0.15)'}; color:${prop.dom > 180 ? 'var(--danger)' : 'var(--warning)'}; border:1px solid ${prop.dom > 180 ? 'rgba(239,68,68,0.3)' : 'rgba(245,158,11,0.3)'};">${prop.dom} DOM</span>`
@@ -4000,6 +4023,7 @@ function renderPublicCatalog() {
     // Render geocoded real listings
     liveMarketListings.forEach(item => {
         const card = document.createElement('div');
+        const inQueue = emailQueue.some(eq => eq.address.toLowerCase() === item.address.toLowerCase());
         card.className = 'glass-card lead-card';
         card.style.cursor = 'default';
         card.style.display = 'flex';
@@ -4048,12 +4072,15 @@ function renderPublicCatalog() {
                 </div>
             </div>
 
-            <div style="display:flex; gap:0.5rem; padding:1.25rem; border-top:1px solid rgba(255,255,255,0.04);">
-                <a href="tel:${item.ownerPhone}" class="btn-secondary" style="flex:1; padding:0.4rem; font-size:0.75rem; display:flex; justify-content:center; align-items:center; gap:4px; color:white; text-decoration:none; text-align:center;">
-                    <i data-lucide="phone" style="width:12px; height:12px;"></i> Call Owner
+            <div style="display:flex; gap:0.25rem; padding:1rem; border-top:1px solid rgba(255,255,255,0.04); flex-wrap:wrap;">
+                <a href="tel:${item.ownerPhone}" class="btn-secondary" style="flex:1 1 30%; padding:0.4rem; font-size:0.7rem; display:flex; justify-content:center; align-items:center; gap:2px; color:white; text-decoration:none; text-align:center; min-width:65px;">
+                    <i data-lucide="phone" style="width:10px; height:10px;"></i> Call
                 </a>
-                <button class="btn-primary" style="flex:1; padding:0.4rem; font-size:0.75rem; display:flex; justify-content:center; align-items:center; gap:4px;" onclick="openOfferModal('${item.id}', '${item.address.replace(/'/g, "\\'")}')">
-                    <i data-lucide="banknote" style="width:12px; height:12px;"></i> Offer
+                <button class="${inQueue ? 'btn-success' : 'btn-secondary'}" style="flex:1 1 30%; padding:0.4rem; font-size:0.7rem; display:flex; justify-content:center; align-items:center; gap:2px; color:white; min-width:65px;" onclick="toggleEmailQueueFromCatalog('${item.id}')">
+                    <i data-lucide="${inQueue ? 'mail-check' : 'mail-plus'}" style="width:10px; height:10px;"></i> ${inQueue ? 'Queued' : 'Queue'}
+                </button>
+                <button class="btn-primary" style="flex:1 1 30%; padding:0.4rem; font-size:0.7rem; display:flex; justify-content:center; align-items:center; gap:2px; min-width:65px;" onclick="openOfferModal('${item.id}', '${item.address.replace(/'/g, "\\'")}')">
+                    <i data-lucide="banknote" style="width:10px; height:10px;"></i> Offer
                 </button>
             </div>
         `;
@@ -7190,4 +7217,188 @@ function handleSaveApiSettings(event) {
     
     // Trigger fresh load of listings
     fetchLiveMarketListings();
+}
+
+// ================= BATCH OUTREACH EMAIL QUEUE SYSTEM =================
+function toggleEmailQueue(id, type) {
+    let prop = null;
+    if (type === 'prospect') {
+        prop = prospects.find(p => p.id === id);
+    }
+    
+    if (!prop) return;
+    
+    const idx = emailQueue.findIndex(eq => eq.address.toLowerCase() === prop.address.toLowerCase());
+    if (idx !== -1) {
+        emailQueue.splice(idx, 1);
+        showToast("Removed property from outreach queue.");
+    } else {
+        emailQueue.push({
+            id: prop.id,
+            address: prop.address,
+            owner: prop.owner || 'Homeowner',
+            email: prop.email || 'info@property.com',
+            phone: prop.phone || 'N/A'
+        });
+        showToast("Added property to batch email outreach queue!");
+    }
+    
+    localStorage.setItem('revitalize_email_queue', JSON.stringify(emailQueue));
+    renderProspectsList();
+    renderEmailQueue();
+}
+
+function toggleEmailQueueFromCatalog(id) {
+    const item = liveMarketListings.find(l => l.id === id);
+    if (!item) return;
+    
+    const idx = emailQueue.findIndex(eq => eq.address.toLowerCase() === item.address.toLowerCase());
+    if (idx !== -1) {
+        emailQueue.splice(idx, 1);
+        showToast("Removed property from outreach queue.");
+    } else {
+        emailQueue.push({
+            id: item.id,
+            address: item.address,
+            owner: item.ownerName || 'Homeowner',
+            email: `${(item.ownerName || 'homeowner').toLowerCase().replace(' ', '')}@mail.com`,
+            phone: item.ownerPhone || 'N/A'
+        });
+        showToast("Added property to batch email outreach queue!");
+    }
+    
+    localStorage.setItem('revitalize_email_queue', JSON.stringify(emailQueue));
+    renderPublicCatalog();
+    renderEmailQueue();
+}
+
+function renderEmailQueue() {
+    const countBadge = document.getElementById('queue-count-badge');
+    if (countBadge) {
+        countBadge.innerText = `${emailQueue.length} Properties`;
+    }
+    
+    const listContainer = document.getElementById('queued-properties-list');
+    if (!listContainer) return;
+    
+    if (emailQueue.length === 0) {
+        listContainer.innerHTML = `
+            <div class="text-muted" style="text-align:center; font-size:0.75rem; padding:1rem;">
+                No properties currently in the queue. Go to Browse Listings or Neighborhood Radar to queue properties.
+            </div>
+        `;
+        return;
+    }
+    
+    listContainer.innerHTML = '';
+    emailQueue.forEach((item, index) => {
+        const row = document.createElement('div');
+        row.style.display = 'flex';
+        row.style.justifyContent = 'space-between';
+        row.style.alignItems = 'center';
+        row.style.padding = '0.35rem 0.5rem';
+        row.style.background = 'rgba(255, 255, 255, 0.02)';
+        row.style.border = '1px solid rgba(255, 255, 255, 0.05)';
+        row.style.borderRadius = '4px';
+        row.style.fontSize = '0.75rem';
+        
+        row.innerHTML = `
+            <div style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:80%; color: white;">
+                <strong style="color:white;">${item.address}</strong> 
+                <span style="color:var(--text-muted); font-size:0.65rem;">(Owner: ${item.owner})</span>
+            </div>
+            <button onclick="removeQueueIndex(${index})" style="background:none; border:none; color:var(--danger); cursor:pointer; display:flex; align-items:center;">
+                <i data-lucide="trash-2" style="width:12px; height:12px;"></i>
+            </button>
+        `;
+        listContainer.appendChild(row);
+    });
+    lucide.createIcons();
+}
+
+function removeQueueIndex(index) {
+    emailQueue.splice(index, 1);
+    localStorage.setItem('revitalize_email_queue', JSON.stringify(emailQueue));
+    renderEmailQueue();
+    renderProspectsList();
+    renderPublicCatalog();
+}
+
+async function sendBatchQueueEmails() {
+    if (emailQueue.length === 0) {
+        showToast("Error: There are no properties in the queue to email!");
+        return;
+    }
+    
+    const subject = document.getElementById('batch-email-subject').value.trim();
+    const template = document.getElementById('batch-email-template').value.trim();
+    
+    if (!subject || !template) {
+        showToast("Error: Subject and Message Template are required!");
+        return;
+    }
+    
+    showToast(`Preparing dispatch to ${emailQueue.length} owners...`);
+    
+    let successCount = 0;
+    
+    for (const item of emailQueue) {
+        // Substitute tokens
+        const customizedBody = template
+            .replace(/{Owner}/g, item.owner)
+            .replace(/{Address}/g, item.address)
+            .replace(/{Phone}/g, item.phone);
+            
+        // Append log locally
+        const logEntry = {
+            id: 'log-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5),
+            recipient: item.email,
+            subject: subject,
+            body: customizedBody,
+            timestamp: new Date().toLocaleTimeString() + ' ' + new Date().toLocaleDateString(),
+            status: 'sent'
+        };
+        
+        emailLogs.unshift(logEntry);
+        successCount++;
+        
+        // Dispatch to integration webhook if configured
+        if (apiSettings.emailProvider === 'webhook' && apiSettings.emailWebhook) {
+            try {
+                await fetch(apiSettings.emailWebhook, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        to: item.email,
+                        owner: item.owner,
+                        address: item.address,
+                        subject: subject,
+                        message: customizedBody,
+                        source: 'Outbound Queue Batch'
+                    })
+                });
+            } catch (err) {
+                console.error("Webhook batch dispatch failed:", err);
+            }
+        }
+    }
+    
+    // Save email logs
+    localStorage.setItem('revitalize_email_logs', JSON.stringify(emailLogs));
+    
+    // Clear queue
+    emailQueue = [];
+    localStorage.setItem('revitalize_email_queue', JSON.stringify(emailQueue));
+    
+    // Clear fields
+    document.getElementById('batch-email-subject').value = '';
+    document.getElementById('batch-email-template').value = '';
+    
+    // Update views
+    renderEmailQueue();
+    renderProspectsList();
+    renderPublicCatalog();
+    renderEmailLogs();
+    
+    showToast(`Successfully sent batch emails to all ${successCount} property owners!`);
 }

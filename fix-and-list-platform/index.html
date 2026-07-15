@@ -1002,6 +1002,38 @@
                                 </button>
                             </div>
                         </div>
+
+                        <!-- Email Queue / Batch Outreach Manager -->
+                        <div class="glass-card templates-card">
+                            <div class="card-header" style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+                                <div style="display:flex; align-items:center; gap:0.5rem;">
+                                    <i data-lucide="mail" class="accent-text"></i>
+                                    <h3>Batch Outreach Queue</h3>
+                                </div>
+                                <span id="queue-count-badge" class="badge success" style="font-size:0.7rem; padding:0.2rem 0.5rem; border-radius:10px;">0 Properties</span>
+                            </div>
+                            <div class="card-body settings-body" style="display:flex; flex-direction:column; gap:1rem;">
+                                <p class="section-desc">Properties selected from neighborhood reports and browse listings waiting for a batch outreach campaign.</p>
+                                
+                                <div id="queued-properties-list" style="max-height:150px; overflow-y:auto; border:1px solid var(--border-color); border-radius:4px; padding:0.5rem; background:rgba(0,0,0,0.2); display:flex; flex-direction:column; gap:0.4rem;">
+                                    <div class="text-muted" style="text-align:center; font-size:0.75rem; padding:1rem;">No properties currently in the queue. Go to Browse Listings or Neighborhood Radar to queue properties.</div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="batch-email-subject">Batch Email Subject</label>
+                                    <input type="text" id="batch-email-subject" placeholder="e.g. Inquiry regarding your property" style="background:rgba(255,255,255,0.01); color:white; border:1px solid var(--border-color); border-radius:4px; padding:0.4rem; font-size:0.8rem; width:100%; box-sizing:border-box;">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="batch-email-template">Batch Message Template</label>
+                                    <textarea id="batch-email-template" rows="4" placeholder="Hello {Owner},&#10;&#10;I noticed your property at {Address} might benefit from our revitalized listing program..." style="background:rgba(255,255,255,0.01); color:white; border:1px solid var(--border-color); border-radius:4px; padding:0.5rem; font-family:inherit; font-size:0.8rem; width:100%; box-sizing:border-box; resize:vertical;"></textarea>
+                                </div>
+                                
+                                <button class="btn-primary" onclick="sendBatchQueueEmails()" style="width:100%;">
+                                    <i data-lucide="send"></i> Send Batch Email to Queue
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Right: Multichannel Ads Builder & Campaign Registry -->
@@ -2449,6 +2481,6 @@
     <!-- Notification Toast -->
     <div id="toast" class="toast">Lead successfully created!</div>
 
-    <script src="app.js?v=37"></script>
+    <script src="app.js?v=38"></script>
 </body>
 </html>
