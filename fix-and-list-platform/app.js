@@ -774,10 +774,15 @@ function switchDashSubTab(subTabName) {
 
 // ================= HOMEOWNER ROI CALCULATOR =================
 function calculateROI() {
-    const asIsValue = parseInt(document.getElementById('input-as-is').value);
-    const rehabLevel = document.getElementById('select-rehab').value;
+    const inputAsIs = document.getElementById('input-as-is');
+    const selectRehab = document.getElementById('select-rehab');
+    if (!inputAsIs || !selectRehab) return;
 
-    document.getElementById('val-as-is').innerText = `$${asIsValue.toLocaleString()}`;
+    const asIsValue = parseInt(inputAsIs.value);
+    const rehabLevel = selectRehab.value;
+
+    const valAsIs = document.getElementById('val-as-is');
+    if (valAsIs) valAsIs.innerText = `$${asIsValue.toLocaleString()}`;
 
     let rehabCost = 40000;
     let arvMultiplier = 1.25;
