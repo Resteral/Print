@@ -613,25 +613,30 @@ function initApp() {
         console.error("Auth user parse error:", e);
     }
 
-    // Seed agent account in local fallback accounts
+    // Seed agent & demo accounts in local fallback accounts
     try {
         let accounts = [];
         const savedAccs = localStorage.getItem('revitalize_accounts');
         if (savedAccs) accounts = JSON.parse(savedAccs);
-        const idx = accounts.findIndex(a => a.email && a.email.toLowerCase() === 'seanhse97@gmail.com');
-        if (idx !== -1) {
-            accounts[idx].password = "SlimpKing555";
-            accounts[idx].role = "agent";
-            accounts[idx].name = "Sean (Agent)";
-        } else {
-            accounts.push({
-                email: "seanhse97@gmail.com",
-                password: "SlimpKing555",
-                name: "Sean (Agent)",
-                role: "agent",
-                bizId: ""
-            });
-        }
+        
+        const demoAccounts = [
+            { email: "seanhse97@gmail.com", password: "SlimpKing555", name: "Sean (Agent)", role: "agent", bizId: "" },
+            { email: "homeowner@example.com", password: "password123", name: "John Homeowner", role: "homeowner", bizId: "" },
+            { email: "contractor@example.com", password: "password123", name: "Apex Contractor", role: "contractor", bizId: "biz-plumbing-1" }
+        ];
+
+        demoAccounts.forEach(demo => {
+            const idx = accounts.findIndex(a => a.email && a.email.toLowerCase() === demo.email.toLowerCase());
+            if (idx !== -1) {
+                accounts[idx].password = demo.password;
+                accounts[idx].role = demo.role;
+                accounts[idx].name = demo.name;
+                accounts[idx].bizId = demo.bizId;
+            } else {
+                accounts.push(demo);
+            }
+        });
+        
         localStorage.setItem('revitalize_accounts', JSON.stringify(accounts));
     } catch (e) {
         console.error("Agent seeding error:", e);
@@ -6786,6 +6791,7 @@ function openAuthModal() {
     document.getElementById('auth-modal-title').innerText = "Sign In to Revitalize";
     document.getElementById('auth-register-only').style.display = 'none';
     document.getElementById('auth-signin-only').style.display = 'flex';
+    document.getElementById('auth-demo-credentials').style.display = 'flex';
     document.getElementById('auth-btn-submit').innerText = "Sign In";
     
     document.getElementById('auth-tab-signin').className = 'btn-primary';
@@ -6824,6 +6830,7 @@ function setAuthTab(tab) {
         document.getElementById('auth-modal-title').innerText = "Sign In to Revitalize";
         document.getElementById('auth-register-only').style.display = 'none';
         document.getElementById('auth-signin-only').style.display = 'flex';
+        document.getElementById('auth-demo-credentials').style.display = 'flex';
         document.getElementById('auth-btn-submit').innerText = "Sign In";
         document.getElementById('auth-tab-signin').className = 'btn-primary';
         document.getElementById('auth-tab-register').className = 'btn-secondary';
@@ -6832,6 +6839,7 @@ function setAuthTab(tab) {
         document.getElementById('auth-modal-title').innerText = "Register New Account";
         document.getElementById('auth-register-only').style.display = 'flex';
         document.getElementById('auth-signin-only').style.display = 'none';
+        document.getElementById('auth-demo-credentials').style.display = 'none';
         document.getElementById('auth-btn-submit').innerText = "Create Account";
         document.getElementById('auth-tab-signin').className = 'btn-secondary';
         document.getElementById('auth-tab-signin').style.color = 'white';

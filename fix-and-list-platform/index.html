@@ -2115,6 +2115,14 @@
                 <button id="auth-tab-register" class="btn-secondary" onclick="setAuthTab('register')" style="padding:0.4rem; font-size:0.75rem; width:100%; color:white;">Register</button>
             </div>
 
+            <!-- Pre-seeded credentials helper -->
+            <div id="auth-demo-credentials" style="background:rgba(255,255,255,0.03); border:1px solid var(--border-color); border-radius:6px; padding:0.6rem; margin-bottom:0.75rem; font-size:0.7rem; color:var(--text-muted); display:flex; flex-direction:column; gap:4px;">
+                <strong style="color:white;">💡 Demo Credentials (Pre-seeded):</strong>
+                <div>🏠 <strong>Homeowner:</strong> homeowner@example.com / password123</div>
+                <div>🔨 <strong>Contractor:</strong> contractor@example.com / password123</div>
+                <div>💼 <strong>Realtor Agent:</strong> seanhse97@gmail.com / SlimpKing555</div>
+            </div>
+
             <form id="auth-form" onsubmit="handleAuthSubmit(event)">
                 <div style="display:flex; flex-direction:column; gap:0.75rem;">
                     <div class="form-group">
@@ -2515,6 +2523,6 @@
     <!-- Notification Toast -->
     <div id="toast" class="toast">Lead successfully created!</div>
 
-    <script src="app.js?v=47"></script>
+    <script src="app.js?v=48"></script>
 </body>
 </html>
