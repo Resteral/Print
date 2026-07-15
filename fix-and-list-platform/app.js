@@ -298,9 +298,6 @@ function initApp() {
         const savedLabor = localStorage.getItem('revitalize_labor_businesses');
         if (savedLabor) {
             laborBusinesses = JSON.parse(savedLabor);
-            if (!Array.isArray(laborBusinesses) || laborBusinesses.length < 3) {
-                throw new Error("Self-healing required: Seed defaults");
-            }
         } else {
             laborBusinesses = [
                 {
@@ -308,103 +305,16 @@ function initApp() {
                     name: 'Apex Plumbing & Drain Services',
                     trade: 'plumbing',
                     rate: 95,
-                    email: 'apex@plumbing.com',
+                    email: 'contractor@example.com',
                     webhook: 'https://hook.us2.make.com/1ugb4pws46g5xpl97qeicogdpv1zgped',
                     sponsored: true,
                     rating: 4.9,
                     distance: 1.2,
                     reviews: [
-                        { author: 'Clara Oswald', rating: 5, text: 'Clean work and highly professional. Unclogged our main sewer line instantly!' },
-                        { author: 'Danny Pink', rating: 5, text: 'Fast response and very fair pricing for the emergency call.' }
+                        { author: 'Clara Oswald', rating: 5, text: 'Clean work and highly professional.' }
                     ],
                     photos: [
-                        'https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=400&q=80',
-                        'https://images.unsplash.com/photo-1581094288338-2314dddb7eed?auto=format&fit=crop&w=400&q=80'
-                    ]
-                },
-                {
-                    id: 'biz-electric-1',
-                    name: 'VoltStar Electrical & Lighting',
-                    trade: 'electrician',
-                    rate: 110,
-                    email: 'voltstar@electric.com',
-                    webhook: 'https://hook.us2.make.com/1ugb4pws46g5xpl97qeicogdpv1zgped',
-                    sponsored: false,
-                    rating: 4.7,
-                    distance: 3.4,
-                    reviews: [
-                        { author: 'Martha Jones', rating: 4, text: 'Rewired our new addition safely. Kept to the schedule!' }
-                    ],
-                    photos: [
-                        'https://images.unsplash.com/photo-1621905252507-b354bc25edac?auto=format&fit=crop&w=400&q=80'
-                    ]
-                },
-                {
-                    id: 'biz-carpentry-1',
-                    name: 'Oakwood Finish Carpentry',
-                    trade: 'carpentry',
-                    rate: 85,
-                    email: 'oakwood@carpentry.com',
-                    webhook: 'https://hook.us2.make.com/1ugb4pws46g5xpl97qeicogdpv1zgped',
-                    sponsored: true,
-                    rating: 4.8,
-                    distance: 2.1,
-                    reviews: [
-                        { author: 'Sarah Jane', rating: 5, text: 'Built custom built-in bookshelves. The craftsmanship is breathtaking.' }
-                    ],
-                    photos: [
-                        'https://images.unsplash.com/photo-1533090161767-e6ffed986c88?auto=format&fit=crop&w=400&q=80'
-                    ]
-                },
-                {
-                    id: 'biz-hvac-1',
-                    name: 'Breeze Mechanical Air & HVAC',
-                    trade: 'hvac',
-                    rate: 90,
-                    email: 'breeze@hvac.com',
-                    webhook: 'https://hook.us2.make.com/1ugb4pws46g5xpl97qeicogdpv1zgped',
-                    sponsored: false,
-                    rating: 4.6,
-                    distance: 4.5,
-                    reviews: [
-                        { author: 'Rory Williams', rating: 5, text: 'Serviced our heat pump before winter. Incredibly thorough checklist.' }
-                    ],
-                    photos: [
-                        'https://images.unsplash.com/photo-1605647540924-852290f6b0d5?auto=format&fit=crop&w=400&q=80'
-                    ]
-                },
-                {
-                    id: 'biz-paint-1',
-                    name: 'ColorCraft Precision Painting',
-                    trade: 'painting',
-                    rate: 65,
-                    email: 'colorcraft@paint.com',
-                    webhook: 'https://hook.us2.make.com/1ugb4pws46g5xpl97qeicogdpv1zgped',
-                    sponsored: true,
-                    rating: 4.8,
-                    distance: 1.7,
-                    reviews: [
-                        { author: 'Amy Pond', rating: 5, text: 'Painted our entire interior in 3 days. Clean lines, zero mess!' }
-                    ],
-                    photos: [
-                        'https://images.unsplash.com/photo-1562259949-e8e7689d7828?auto=format&fit=crop&w=400&q=80'
-                    ]
-                },
-                {
-                    id: 'biz-lawn-1',
-                    name: 'GreenScapes Premium Landscaping',
-                    trade: 'landscaping',
-                    rate: 55,
-                    email: 'greenscapes@lawn.com',
-                    webhook: 'https://hook.us2.make.com/1ugb4pws46g5xpl97qeicogdpv1zgped',
-                    sponsored: false,
-                    rating: 4.9,
-                    distance: 2.8,
-                    reviews: [
-                        { author: 'Donna Noble', rating: 5, text: 'Stunning pavers and retaining wall installation. Highly recommend!' }
-                    ],
-                    photos: [
-                        'https://images.unsplash.com/photo-1558904541-efa8c1a68d6d?auto=format&fit=crop&w=400&q=80'
+                        'https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=400&q=80'
                     ]
                 }
             ];
@@ -412,96 +322,7 @@ function initApp() {
         }
     } catch (e) {
         console.error("Labor businesses parse error, resetting...", e);
-        laborBusinesses = [
-            {
-                id: 'biz-plumbing-1',
-                name: 'Apex Plumbing & Drain Services',
-                trade: 'plumbing',
-                rate: 95,
-                email: 'apex@plumbing.com',
-                webhook: 'https://hook.us2.make.com/1ugb4pws46g5xpl97qeicogdpv1zgped',
-                sponsored: true,
-                rating: 4.9,
-                distance: 1.2,
-                reviews: [
-                    { author: 'Clara Oswald', rating: 5, text: 'Clean work and highly professional. Unclogged our main sewer line instantly!' },
-                    { author: 'Danny Pink', rating: 5, text: 'Fast response and very fair pricing for the emergency call.' }
-                ],
-                photos: [
-                    'https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=400&q=80',
-                    'https://images.unsplash.com/photo-1581094288338-2314dddb7eed?auto=format&fit=crop&w=400&q=80'
-                ]
-            },
-            {
-                id: 'biz-electric-1',
-                name: 'VoltStar Electrical & Lighting',
-                trade: 'electrician',
-                rate: 110,
-                email: 'voltstar@electric.com',
-                webhook: 'https://hook.us2.make.com/1ugb4pws46g5xpl97qeicogdpv1zgped',
-                sponsored: false,
-                rating: 4.7,
-                distance: 2.1,
-                reviews: [
-                    { author: 'Rose Tyler', rating: 5, text: 'Upgraded our entire electrical panel to 200A. Prompt and clean.' }
-                ],
-                photos: [
-                    'https://images.unsplash.com/photo-1621905252507-b354bc25edac?auto=format&fit=crop&w=400&q=80'
-                ]
-            },
-            {
-                id: 'biz-hvac-1',
-                name: 'ClimateControl AC & Heating',
-                trade: 'hvac',
-                rate: 85,
-                email: 'climatecontrol@hvac.com',
-                webhook: 'https://hook.us2.make.com/1ugb4pws46g5xpl97qeicogdpv1zgped',
-                sponsored: false,
-                rating: 4.8,
-                distance: 4.5,
-                reviews: [
-                    { author: 'Rory Williams', rating: 5, text: 'Serviced our heat pump before winter. Incredibly thorough checklist.' }
-                ],
-                photos: [
-                    'https://images.unsplash.com/photo-1605647540924-852290f6b0d5?auto=format&fit=crop&w=400&q=80'
-                ]
-            },
-            {
-                id: 'biz-paint-1',
-                name: 'ColorCraft Precision Painting',
-                trade: 'painting',
-                rate: 65,
-                email: 'colorcraft@paint.com',
-                webhook: 'https://hook.us2.make.com/1ugb4pws46g5xpl97qeicogdpv1zgped',
-                sponsored: true,
-                rating: 4.8,
-                distance: 1.7,
-                reviews: [
-                    { author: 'Amy Pond', rating: 5, text: 'Painted our entire interior in 3 days. Clean lines, zero mess!' }
-                ],
-                photos: [
-                    'https://images.unsplash.com/photo-1562259949-e8e7689d7828?auto=format&fit=crop&w=400&q=80'
-                ]
-            },
-            {
-                id: 'biz-lawn-1',
-                name: 'GreenScapes Premium Landscaping',
-                trade: 'landscaping',
-                rate: 55,
-                email: 'greenscapes@lawn.com',
-                webhook: 'https://hook.us2.make.com/1ugb4pws46g5xpl97qeicogdpv1zgped',
-                sponsored: false,
-                rating: 4.9,
-                distance: 2.8,
-                reviews: [
-                    { author: 'Donna Noble', rating: 5, text: 'Stunning pavers and retaining wall installation. Highly recommend!' }
-                ],
-                photos: [
-                    'https://images.unsplash.com/photo-1558904541-efa8c1a68d6d?auto=format&fit=crop&w=400&q=80'
-                ]
-            }
-        ];
-        localStorage.setItem('revitalize_labor_businesses', JSON.stringify(laborBusinesses));
+        laborBusinesses = [];
     }
 
     // Load Contractor Chats
@@ -522,28 +343,7 @@ function initApp() {
         if (savedRequests) {
             workRequests = JSON.parse(savedRequests);
         } else {
-            workRequests = [
-                {
-                    id: 'req-1',
-                    address: '504 Cedar Rd',
-                    trade: 'electrician',
-                    budget: 1500,
-                    desc: 'Need new kitchen GFCI outlets installed and dedicated panel circuit wired.',
-                    owner: 'Alice Smith',
-                    email: 'alice@smithmail.com',
-                    timestamp: new Date(Date.now() - 3600000 * 4).toLocaleString()
-                },
-                {
-                    id: 'req-2',
-                    address: '891 Oak Ridge Rd',
-                    trade: 'plumbing',
-                    budget: 800,
-                    desc: 'Bathtub faucet is leaking inside the wall. Need drywall cut and valve replaced.',
-                    owner: 'Bob Johnson',
-                    email: 'bob@johnson.com',
-                    timestamp: new Date(Date.now() - 3600000 * 24).toLocaleString()
-                }
-            ];
+            workRequests = [];
             localStorage.setItem('revitalize_work_requests', JSON.stringify(workRequests));
         }
     } catch (e) {
